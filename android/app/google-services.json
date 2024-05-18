@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "762621525209",
+    "project_id": "teh-kota",
+    "storage_bucket": "teh-kota.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762621525209:android:1ff403a1c1ffe2704392c8",
+        "android_client_info": {
+          "package_name": "com.tehkota"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJWbZWR1D8s-IWGTrFcp4Sn5spa6xu8Rc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,42 @@
+name: teh_kota
+version: 1.0.0+1
+publish_to: none
+description: A new Flutter project.
+environment:
+  sdk: ">=2.19.0 <3.0.0"
+
+dependencies:
+  cloud_firestore: ^4.14.0
+  convex_bottom_bar: ^3.2.0
+  cupertino_icons: ^1.0.6
+  firebase_core: ^2.24.2
+  flutter:
+    sdk: flutter
+  flutter_svg: ^1.1.6
+  get: ^4.6.3
+  intl: ^0.18.1
+  package_info_plus: ^4.2.0
+
+dev_dependencies:
+  flutter_lints: ^2.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+
+  fonts:
+    - family: poppins
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Poppins/Poppins-ExtraBold.ttf
+          weight: 800
