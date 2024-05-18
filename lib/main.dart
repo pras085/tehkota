@@ -5,12 +5,14 @@ import 'package:flutter/services.dart';
 
 import 'package:get/get.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:teh_kota/app/locator.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 
 import 'app/routes/app_pages.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  setupServices();
   await Firebase.initializeApp();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

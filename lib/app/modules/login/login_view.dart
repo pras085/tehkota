@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';

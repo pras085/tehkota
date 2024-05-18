@@ -1,11 +1,23 @@
 import 'package:get/get.dart';
+
+import '../../locator.dart';
+import '../../services/camera.service.dart';
+import '../../services/face_detector_service.dart';
+import '../../services/ml_service.dart';
 // import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class PresenceController extends GetxController {
+  // Face Recognition
+  final MLService _mlService = locator<MLService>();
+  final FaceDetectorService _mlKitService = locator<FaceDetectorService>();
+  final CameraService _cameraService = locator<CameraService>();
+  var loading = false.obs;
+
   @override
   void onInit() async {
     // faceDetector = FaceDetector(options: options);
     super.onInit();
+    _initializeServices();
   }
 
   @override
@@ -18,30 +30,11 @@ class PresenceController extends GetxController {
     super.onClose();
   }
 
-// final List<Face> faces = await faceDetector.processImage(inputImage);
-
-// for (Face face in faces) {
-//   final Rect boundingBox = face.boundingBox;
-
-//   final double? rotX = face.headEulerAngleX; // Head is tilted up and down rotX degrees
-//   final double? rotY = face.headEulerAngleY; // Head is rotated to the right rotY degrees
-//   final double? rotZ = face.headEulerAngleZ; // Head is tilted sideways rotZ degrees
-
-//   // If landmark detection was enabled with FaceDetectorOptions (mouth, ears,
-//   // eyes, cheeks, and nose available):
-//   final FaceLandmark? leftEar = face.landmarks[FaceLandmarkType.leftEar];
-//   if (leftEar != null) {
-//     final Point<int> leftEarPos = leftEar.position;
-//   }
-
-//   // If classification was enabled with FaceDetectorOptions:
-//   if (face.smilingProbability != null) {
-//     final double? smileProb = face.smilingProbability;
-//   }
-
-//   // If face tracking was enabled with FaceDetectorOptions:
-//   if (face.trackingId != null) {
-//     final int? id = face.trackingId;
-//   }
-// }
+  _initializeServices() async {
+    loading.value = true;
+    await _cameraService.initialize();
+    await _mlService.initialize();
+    _mlKitService.initialize();
+    loading.value = false;
+  }
 }

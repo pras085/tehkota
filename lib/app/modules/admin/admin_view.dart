@@ -252,7 +252,7 @@ class AdminView extends GetView<AdminController> {
         children: [
            Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: const [
               CustomText(
                 "Riwayat Presensi",
                 fontSize: 16,

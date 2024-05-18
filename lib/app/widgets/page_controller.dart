@@ -18,10 +18,6 @@ class _PageViewControllerState extends State<PageViewController> {
   var selectedIndex = 0.obs;
   PageController pageC = PageController();
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   void pageChanged(int index) {
     setState(() {
@@ -57,7 +53,7 @@ class _PageViewControllerState extends State<PageViewController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: buildPageView(),
+      body:  buildPageView(),
       bottomNavigationBar: ConvexAppBar(
         cornerRadius: 22,
         backgroundColor: const Color(AppColor.colorWhite),
