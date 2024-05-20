@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
 
@@ -113,9 +113,10 @@ class MLService {
     double currDist = 0.0;
     User? predictedResult;
 
-    print('users.length=> ${users.length}');
+    print('JUMLAH USER => ${users.length}');
 
     for (User u in users) {
+      print('JUMLAH USER => ${u.user}');
       currDist = _euclideanDistance(u.modelData, predictedData);
       if (currDist <= threshold && currDist < minDist) {
         minDist = currDist;

@@ -12,6 +12,8 @@ class CustomAppBar extends PreferredSize {
   final VoidCallback? onClickBack;
   final Widget? titleWidget;
   final double appBarSize;
+  final bool isPresence;
+
   CustomAppBar({
     super.key,
     this.title = '',
@@ -20,6 +22,7 @@ class CustomAppBar extends PreferredSize {
     this.onClickBack,
     this.titleWidget,
     this.appBarSize = 56,
+    this.isPresence = false,
     Widget? child,
   }) : super(
           preferredSize: Size.fromHeight(appBarSize),
@@ -29,16 +32,15 @@ class CustomAppBar extends PreferredSize {
   @override
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(AppColor.colorWhite),
+      decoration: BoxDecoration(
+        color: isPresence ? Colors.transparent : const Color(AppColor.colorWhite),
       ),
       child: SafeArea(
         child: Container(
           height: appBarSize,
           padding: const EdgeInsets.all(16),
-          color: const Color(AppColor.colorWhite),
+          color: isPresence ? Colors.transparent : const Color(AppColor.colorWhite),
           child: Stack(
             children: [
               Container(
@@ -82,7 +84,7 @@ class CustomAppBar extends PreferredSize {
     return titleWidget ??
         CustomText(
           title,
-          color: const Color(AppColor.colorBlackNormal),
+          color: Color(isPresence ? AppColor.colorWhite : AppColor.colorBlackNormal),
           fontWeight: FontWeight.w600,
           fontSize: 16,
           textAlign: TextAlign.center,
@@ -98,7 +100,10 @@ class CustomAppBar extends PreferredSize {
           height: 24,
           width: 24,
           // alignment: Alignment.center,
-          child: SvgPicture.asset("assets/ic_back_button.svg",),
+          child: SvgPicture.asset(
+            "assets/ic_back_button.svg",
+            color: isPresence ? const Color(AppColor.colorWhite) : null,
+          ),
         ),
       ),
     );

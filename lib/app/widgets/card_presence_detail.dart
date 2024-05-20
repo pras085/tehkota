@@ -72,6 +72,7 @@ class CardPresenceDetail extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CustomText(
                         Utils.formatTanggaLocal(DateTime.now().toString(), format: "d"),

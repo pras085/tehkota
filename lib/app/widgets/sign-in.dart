@@ -47,6 +47,8 @@ class SignInState extends State<SignIn> {
 
   Future _start() async {
     setState(() => _isInitializing = true);
+    await _mlService.initialize();
+    _faceDetectorService.initialize();
     await _cameraService.initialize();
     setState(() => _isInitializing = false);
     _frameFaces();
@@ -62,7 +64,7 @@ class SignInState extends State<SignIn> {
     });
   }
 
-  Future<void> _predictFacesFromImage({@required CameraImage? image}) async {
+  Future<void> _predictFacesFromImage({required CameraImage? image}) async {
     assert(image != null, 'Image is null');
     await _faceDetectorService.detectFacesFromImage(image!);
     if (_faceDetectorService.faceDetected) {
@@ -93,7 +95,11 @@ class SignInState extends State<SignIn> {
     await takePicture();
     if (_faceDetectorService.faceDetected) {
       User? user = await _mlService.predict();
-      var bottomSheetController = scaffoldKey.currentState!.showBottomSheet((context) => signInSheet(user: user));
+      var bottomSheetController = scaffoldKey.currentState!.showBottomSheet(
+        (context) => signInSheet(user: user),
+        backgroundColor: Colors.transparent,
+        enableDrag: false,
+      );
       bottomSheetController.closed.whenComplete(_reload);
     }
   }
@@ -108,10 +114,44 @@ class SignInState extends State<SignIn> {
 
   @override
   Widget build(BuildContext context) {
-    Widget header = CameraHeader("LOGIN", onBackPressed: _onBackPressed);
+    Widget header = CameraHeader(onBackPressed: _onBackPressed);
     Widget body = getBodyWidget();
     Widget? fab;
-    // if (!_isPictureTaken) fab = AuthButton(onTap: onTap);
+    if (!_isPictureTaken) {
+      fab = InkWell(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Color(0xFF0F0BDB),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.1),
+                blurRadius: 1,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          width: MediaQuery.of(context).size.width * 0.8,
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'CAPTURE',
+                style: TextStyle(color: Colors.white),
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Icon(Icons.camera_alt, color: Colors.white)
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       key: scaffoldKey,
@@ -123,7 +163,7 @@ class SignInState extends State<SignIn> {
     );
   }
 
-  signInSheet({@required User? user}) => user == null
+  signInSheet({required User? user}) => user == null
       ? Container(
           width: MediaQuery.of(context).size.width,
           padding: const EdgeInsets.all(20),

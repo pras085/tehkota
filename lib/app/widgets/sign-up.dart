@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:camera/camera.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:flutter/material.dart';
 
 import '../locator.dart';
@@ -10,6 +10,7 @@ import '../services/camera.service.dart';
 import '../services/face_detector_service.dart';
 import '../services/ml_service.dart';
 import 'FacePainter.dart';
+import 'auth-action-button.dart';
 import 'camera_header.dart';
 
 class SignUp extends StatefulWidget {
@@ -33,9 +34,9 @@ class SignUpState extends State<SignUp> {
   bool _bottomSheetVisible = false;
 
   // service injection
-  final FaceDetectorService _faceDetectorService = locator<FaceDetectorService>();
-  final CameraService _cameraService = locator<CameraService>();
-  final MLService _mlService = locator<MLService>();
+  FaceDetectorService _faceDetectorService = locator<FaceDetectorService>();
+  CameraService _cameraService = locator<CameraService>();
+  MLService _mlService = locator<MLService>();
 
   @override
   void initState() {
@@ -62,7 +63,7 @@ class SignUpState extends State<SignUp> {
       showDialog(
         context: context,
         builder: (context) {
-          return const AlertDialog(
+          return AlertDialog(
             content: Text('No face detected!'),
           );
         },
@@ -71,9 +72,9 @@ class SignUpState extends State<SignUp> {
       return false;
     } else {
       _saving = true;
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(Duration(milliseconds: 500));
       // await _cameraService.cameraController?.stopImageStream();
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future.delayed(Duration(milliseconds: 200));
       XFile? file = await _cameraService.takePicture();
       imagePath = file?.path;
 
@@ -144,7 +145,7 @@ class SignUpState extends State<SignUp> {
 
     late Widget body;
     if (_initializing) {
-      body = const Center(
+      body = Center(
         child: CircularProgressIndicator(),
       );
     }
@@ -174,13 +175,15 @@ class SignUpState extends State<SignUp> {
               fit: BoxFit.fitHeight,
               child: Container(
                 width: width,
-                height: width * _cameraService.cameraController!.value.aspectRatio,
+                height:
+                    width * _cameraService.cameraController!.value.aspectRatio,
                 child: Stack(
                   fit: StackFit.expand,
                   children: <Widget>[
                     CameraPreview(_cameraService.cameraController!),
                     CustomPaint(
-                      painter: FacePainter(face: faceDetected, imageSize: imageSize!),
+                      painter: FacePainter(
+                          face: faceDetected, imageSize: imageSize!),
                     ),
                   ],
                 ),
@@ -192,23 +195,21 @@ class SignUpState extends State<SignUp> {
     }
 
     return Scaffold(
-      body: Stack(
-        children: [
-          body,
-          CameraHeader(
-            "SIGN UP",
-            onBackPressed: _onBackPressed,
-          )
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      // floatingActionButton: !_bottomSheetVisible
-      //     ? AuthActionButton(
-      //         onPressed: onShot,
-      //         isLogin: false,
-      //         reload: _reload,
-      //       )
-      //     : Container(),
-    );
+        body: Stack(
+          children: [
+            body,
+            CameraHeader(
+              onBackPressed: _onBackPressed,
+            )
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: !_bottomSheetVisible
+            ? AuthActionButton(
+                onPressed: onShot,
+                isLogin: false,
+                reload: _reload,
+              )
+            : Container());
   }
 }

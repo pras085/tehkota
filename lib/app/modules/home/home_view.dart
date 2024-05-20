@@ -17,7 +17,7 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(HomeController());
+    Get.put(HomeController(), permanent: true);
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       appBar: CustomAppBar(
@@ -25,19 +25,23 @@ class HomeView extends GetView<HomeController> {
         customBody: Stack(
           alignment: Alignment.center,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Row(
-                children: [Image.asset("assets/logo_splash.png"), const SizedBox(width: 12), _profileWidget()],
+            GestureDetector(
+              onDoubleTap: () => Get.toNamed(Routes.TESTING),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [Image.asset("assets/logo_splash.png"), const SizedBox(width: 12), _profileWidget()],
+                ),
               ),
             ),
-            Align(
+            const Align(
               alignment: Alignment.centerRight,
-              child: SvgPicture.asset(
-                "assets/ic_cs.svg",
-                height: 20,
-                width: 20,
-              ),
+              child: Icon(Icons.people_alt),
+              // child: SvgPicture.asset(
+              //   "assets/ic_cs.svg",
+              //   height: 20,
+              //   width: 20,
+              // ),
             ),
           ],
         ),

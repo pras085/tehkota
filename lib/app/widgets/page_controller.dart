@@ -4,7 +4,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:teh_kota/app/modules/home/home_view.dart';
 import 'package:teh_kota/app/modules/login/login_view.dart';
-import '../modules/presence/presence_view.dart';
+import 'package:teh_kota/app/modules/presence/presence_view.dart';
+import 'package:teh_kota/app/routes/app_pages.dart';
+import 'package:teh_kota/app/widgets/custom_fab_button.dart';
 import '../utils/app_colors.dart';
 
 class PageViewController extends StatefulWidget {
@@ -18,18 +20,17 @@ class _PageViewControllerState extends State<PageViewController> {
   var selectedIndex = 0.obs;
   PageController pageC = PageController();
 
-
   void pageChanged(int index) {
+    if (index == 1) return;
     setState(() {
       selectedIndex.value = index;
     });
   }
 
   void bottomTapped(int index) {
-    // if (index == 1) {
-    //   print("object");
-    //   return;
-    // }
+    if (index == 1) {
+      return;
+    }
     setState(() {
       selectedIndex.value = index;
       pageC.animateToPage(index, duration: const Duration(milliseconds: 500), curve: Curves.easeIn);
@@ -38,13 +39,13 @@ class _PageViewControllerState extends State<PageViewController> {
 
   Widget buildPageView() {
     return PageView(
+      physics: const NeverScrollableScrollPhysics(),
       controller: pageC,
       onPageChanged: (index) {
         pageChanged(index);
       },
       children: const <Widget>[
         HomeView(),
-        PresenceView(),
         LoginView(),
       ],
     );
@@ -53,7 +54,7 @@ class _PageViewControllerState extends State<PageViewController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:  buildPageView(),
+      body: buildPageView(),
       bottomNavigationBar: ConvexAppBar(
         cornerRadius: 22,
         backgroundColor: const Color(AppColor.colorWhite),
@@ -61,6 +62,7 @@ class _PageViewControllerState extends State<PageViewController> {
         color: const Color(AppColor.colorDarkGrey),
         style: TabStyle.fixed,
         elevation: 0,
+        top: -15,
         items: [
           TabItem(
             title: "Beranda",
@@ -75,15 +77,15 @@ class _PageViewControllerState extends State<PageViewController> {
             ),
           ),
           TabItem(
-            icon: CircleAvatar(
-              backgroundColor: const Color(AppColor.colorGreen),
-              child: ClipRect(
-                child: SvgPicture.asset(
-                  "assets/ic_face_scan.svg",
-                ),
-              ),
-            ),
-          ),
+              icon: CustomFabButton(
+            isGreenColor: false,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (BuildContext context) => const PresenceView()),
+              );
+            },
+          )),
           TabItem(
             title: "Login",
             fontFamily: "poppins",

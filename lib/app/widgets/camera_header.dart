@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CameraHeader extends StatelessWidget {
-  const CameraHeader(this.title, {super.key, this.onBackPressed});
-  final String title;
+  const CameraHeader({super.key, this.onBackPressed});
   final void Function()? onBackPressed;
 
   @override
@@ -19,7 +18,7 @@ class CameraHeader extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children:  [
+        children: [
           InkWell(
             onTap: onBackPressed,
             child: Container(
@@ -34,9 +33,8 @@ class CameraHeader extends StatelessWidget {
             ),
           ),
           Text(
-            title,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
+            "",
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
             textAlign: TextAlign.center,
           ),
           const SizedBox(

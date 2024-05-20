@@ -12,6 +12,10 @@ import 'app/routes/app_pages.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // Log or handle the error details
+    debugPrint("$details");
+  };
   setupServices();
   await Firebase.initializeApp();
   SystemChrome.setPreferredOrientations([

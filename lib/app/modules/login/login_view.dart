@@ -11,7 +11,7 @@ class LoginView extends GetView<LoginController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.lazyPut<LoginController>(() => LoginController());
+    Get.put(LoginController(), permanent: true);
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       body: SafeArea(

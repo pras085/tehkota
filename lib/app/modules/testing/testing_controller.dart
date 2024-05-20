@@ -6,7 +6,7 @@ import '../../services/face_detector_service.dart';
 import '../../services/ml_service.dart';
 // import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-class PresenceController extends GetxController {
+class TestingController extends GetxController {
   // Face Recognition
   final MLService _mlService = locator<MLService>();
   final FaceDetectorService _mlKitService = locator<FaceDetectorService>();

@@ -66,7 +66,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
 
   @override
   void dispose() {
-    widget.controller?.dispose();
+    // widget.controller?.dispose();
     super.dispose();
   }
 
@@ -102,11 +102,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                     hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
                   ),
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorBlack), fontFamily: "poppins"),
-                  autofocus: true,
                   obscureText: _showPass,
-                  onChanged: (str) {
-                    widget.controller?.text = str;
-                  },
                   // inputFormatters: widget.inputFormatters,
                   // onTap: widget.onTap,
                 ),

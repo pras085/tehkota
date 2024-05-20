@@ -14,7 +14,7 @@ class DatabaseHelper {
   static const table = 'users';
   static const columnId = 'id';
   static const columnUser = 'user';
-  static const columnPassword = 'password';
+  // static const columnPassword = 'password';
   static const columnModelData = 'model_data';
 
   DatabaseHelper._privateConstructor();
@@ -34,11 +34,18 @@ class DatabaseHelper {
   }
 
   Future _onCreate(Database db, int version) async {
+  //   await db.execute('''
+  //         CREATE TABLE $table (
+  //           $columnId INTEGER PRIMARY KEY,
+  //           $columnUser TEXT NOT NULL,
+  //           $columnPassword TEXT NOT NULL,
+  //           $columnModelData TEXT NOT NULL
+  //         )
+  //         ''');
     await db.execute('''
           CREATE TABLE $table (
             $columnId INTEGER PRIMARY KEY,
             $columnUser TEXT NOT NULL,
-            $columnPassword TEXT NOT NULL,
             $columnModelData TEXT NOT NULL
           )
           ''');

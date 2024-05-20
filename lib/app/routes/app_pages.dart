@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:teh_kota/app/modules/testing/testing_binding.dart';
+import 'package:teh_kota/app/modules/testing/testing_view.dart';
 
 import '../modules/admin/admin_binding.dart';
 import '../modules/admin/admin_view.dart';
@@ -21,6 +23,11 @@ class AppPages {
   static const INITIAL = Routes.SPLASH;
 
   static final routes = [
+    GetPage(
+      name: Routes.TESTING,
+      page: () => const TestingView(),
+      binding: TestingBinding(),
+    ),
     GetPage(
       name: Routes.HOME,
       page: () => const HomeView(),
