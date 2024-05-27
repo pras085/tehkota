@@ -25,23 +25,22 @@ class HomeView extends GetView<HomeController> {
         customBody: Stack(
           alignment: Alignment.center,
           children: [
-            GestureDetector(
-              onDoubleTap: () => Get.toNamed(Routes.TESTING),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  children: [Image.asset("assets/logo_splash.png"), const SizedBox(width: 12), _profileWidget()],
-                ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [Image.asset("assets/logo_splash.png"), const SizedBox(width: 12), _profileWidget()],
               ),
             ),
-            const Align(
+            Align(
               alignment: Alignment.centerRight,
-              child: Icon(Icons.people_alt),
-              // child: SvgPicture.asset(
-              //   "assets/ic_cs.svg",
-              //   height: 20,
-              //   width: 20,
-              // ),
+              child: InkWell(
+                onTap: () => Get.toNamed(Routes.TESTING),
+                child: SvgPicture.asset(
+                  "assets/ic_data_karyawan.svg",
+                  height: 24,
+                  width: 24,
+                ),
+              ),
             ),
           ],
         ),
