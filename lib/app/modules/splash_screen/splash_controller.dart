@@ -9,7 +9,7 @@ class SplashController extends GetxController {
   void onInit() async {
     super.onInit();
     packageInfo.value = await PackageInfo.fromPlatform();
-    await Future.delayed(const Duration(seconds: 1)).then((value) => Get.offAll(() => const PageViewController()));
+    await Future.delayed(const Duration(seconds: 1)).then((value) => Get.offAll(() => const PageViewUserController()));
   }
 
   @override

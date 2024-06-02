@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:teh_kota/app/widgets/page_controller.dart';
 
 import '../../utils/utils.dart';
 
@@ -9,23 +11,11 @@ class LoginController extends GetxController {
   var emailC = TextEditingController();
   var passC = TextEditingController();
 
-  var dataAdmin = {}; 
-  var listDataPresence = [
-    {
-      "id": "2",
-      "name": "Rizka dfdsd",
-      "tanggal": "04/05/2024",
-      "presensi_masuk": "09.00",
-      // "presensi_keluar": "",
-      "lembur": "1.20",
-      "status": "0",
-    },
-  ];
-
+  var dataAdmin = {}.obs;
   @override
   void onInit() {
-    getDataUserAdmin();
     super.onInit();
+    getDataUserAdmin();
   }
 
   @override
@@ -36,6 +26,8 @@ class LoginController extends GetxController {
   @override
   void onClose() {
     super.onClose();
+    emailC.clear();
+    passC.clear();
   }
 
   void getDataUserAdmin() async {
@@ -44,7 +36,7 @@ class LoginController extends GetxController {
         for (var doc in event.docs) {
           print("${doc.id} => ${doc.data()}");
           if (doc.id.contains("default")) {
-            dataAdmin = doc.data();
+            dataAdmin.value = doc.data();
           }
         }
       }, onError: (e) {
@@ -52,16 +44,18 @@ class LoginController extends GetxController {
       });
     } catch (e) {
       log("EROR: $e");
+      dataAdmin.value = {};
     }
   }
 
-  void tapLoginButton() {
-    if(emailC.text.isEmpty || passC.text.isEmpty){
-
-    }
-    if (emailC.text == dataAdmin["email"] && passC.text == dataAdmin["password"]){
+  void tapLoginButton() async {
+    if (emailC.text.isEmpty || passC.text.isEmpty) {}
+    if (emailC.text == dataAdmin["email"] && passC.text == dataAdmin["password"]) {
       print("pass");
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool('isLoggedIn', true);
+      Utils.isAdmin.value = true;
+      Get.offAll(() => const PageViewAdminController());
     }
-
   }
 }

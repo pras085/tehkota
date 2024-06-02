@@ -17,7 +17,7 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(HomeController(), permanent: true);
+    Get.put(HomeController());
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       appBar: CustomAppBar(
@@ -34,7 +34,7 @@ class HomeView extends GetView<HomeController> {
             Align(
               alignment: Alignment.centerRight,
               child: InkWell(
-                onTap: () => Get.toNamed(Routes.TESTING),
+                onTap: () => Get.toNamed(Routes.REGISTER),
                 child: SvgPicture.asset(
                   "assets/ic_data_karyawan.svg",
                   height: 24,

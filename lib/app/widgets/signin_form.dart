@@ -62,7 +62,7 @@ class SignInSheet extends StatelessWidget {
                 ),
                 children: <InlineSpan>[
                   TextSpan(
-                    text: user.user,
+                    text: user.userName,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                     ),

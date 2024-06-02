@@ -19,21 +19,48 @@ class RiwayatView extends GetView<RiwayatController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(RiwayatController());
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       appBar: CustomAppBar(
-        appBarSize: 56,
-        title: "Riwayat Presensi",
-        prefixIcon: [
-          InkWell(
-            onTap: () {
-              Get.toNamed(Routes.REKAP);
-            },
-            child: SvgPicture.asset(
-              "assets/ic_recap.svg",
+        customBody: Obx(() {
+          return SizedBox(
+            width: Get.width,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (!Utils.isAdmin.value)
+                  InkWell(
+                    onTap: () => Get.back(),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: SvgPicture.asset(
+                          "assets/ic_back_button.svg",
+                        ),
+                      ),
+                    ),
+                  ),
+                CustomText(
+                  "Riwayat Presensi",
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                if (!Utils.isAdmin.value)
+                  InkWell(
+                    onTap: () {
+                      Get.toNamed(Routes.REKAP);
+                    },
+                    child: SvgPicture.asset(
+                      "assets/ic_recap.svg",
+                    ),
+                  )
+              ],
             ),
-          )
-        ],
+          );
+        }),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -70,12 +97,13 @@ class RiwayatView extends GetView<RiwayatController> {
                 ],
               ),
               Expanded(
-                  child: ListView.builder(
-                itemCount: controller.listDataPresence.length,
-                itemBuilder: (context, i) {
-                  return CardPresenceDetail(controller.listDataPresence[i]);
-                },
-              ))
+                child: ListView.builder(
+                  itemCount: controller.listDataPresence.length,
+                  itemBuilder: (context, i) {
+                    return CardPresenceDetail(controller.listDataPresence[i]);
+                  },
+                ),
+              )
             ],
           ),
         ),

@@ -99,7 +99,6 @@ class CustomAppBar extends PreferredSize {
         child: SizedBox(
           height: 24,
           width: 24,
-          // alignment: Alignment.center,
           child: SvgPicture.asset(
             "assets/ic_back_button.svg",
             color: isPresence ? const Color(AppColor.colorWhite) : null,

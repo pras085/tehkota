@@ -1,24 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:teh_kota/app/utils/app_colors.dart';
 
-enum TypeShift {
-  shiftPagi,
-  shiftSiang,
-  shiftSore,
-}
+enum TypeToast { error, success }
 
-enum TypeStatus {
-  berlangsung,
-  hadir,
-  terlambat,
-}
+enum TypeShift { shiftPagi, shiftSiang, shiftSore }
+
+enum TypeStatus { berlangsung, hadir, terlambat }
 
 class Utils {
-  static FirebaseFirestore? firestore; 
+  static FirebaseFirestore? firestore;
   static PackageInfo? packageInfo;
   static String branchName = "Wungu, Kab. Madiun";
+  static var isLoggedIn = false.obs;
+  static var isAdmin = false.obs;
 
   static Future<PackageInfo> initPackageInfoPlus() async {
     return await PackageInfo.fromPlatform();
@@ -256,7 +254,7 @@ class Utils {
   }
 
   static int? convertHoursToMinute(String? hoursVal) {
-    if(hoursVal == null) return null;
+    if (hoursVal == null) return null;
     // Pisahkan jam menjadi jam dan menit
     List<String> jamParts = hoursVal.split('.');
 
@@ -275,5 +273,52 @@ class Utils {
 
   static Widget gapHorizontal(double gap) {
     return SizedBox(width: gap);
+  }
+
+  static showToast(TypeToast typeToast, String message) {
+    if (typeToast == TypeToast.success) {
+      return Get.snackbar("Sukses", message, backgroundColor: const Color(AppColor.colorGreen));
+    } else {
+      return Get.snackbar("Gagal", message, backgroundColor: const Color(AppColor.colorRed));
+    }
+  }
+
+  static Future<bool> showAlertDialog(BuildContext context, String message) async {
+    // set up the buttons
+    Widget cancelButton = ElevatedButton(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all<Color>(
+          const Color(AppColor.colorRed),
+        ),
+      ),
+      child: const Text("Batal"),
+      onPressed: () {
+        // returnValue = false;
+        Navigator.of(context).pop(false);
+      },
+    );
+    Widget continueButton = ElevatedButton(
+      child: const Text("Iya"),
+      onPressed: () {
+        // returnValue = true;
+        Navigator.of(context).pop(true);
+      },
+    ); // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: const Text("Konfirmasi"),
+      content: Text(message),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    ); // show the dialog
+    final result = await showDialog<bool?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+    return result ?? false;
   }
 }

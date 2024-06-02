@@ -14,11 +14,44 @@ class RekapView extends GetView<RekapController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(RekapController());
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       appBar: CustomAppBar(
-        appBarSize: 56,
-        title: "Rekap Presensi",
+        customBody: SizedBox(
+          width: Get.width,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (!Utils.isAdmin.value)
+                InkWell(
+                  onTap: () => Get.back(),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: SvgPicture.asset(
+                        "assets/ic_back_button.svg",
+                      ),
+                    ),
+                  ),
+                ),
+              const CustomText(
+                "Rekap Presensi",
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+              if (Utils.isAdmin.value)
+                InkWell(
+                  onTap: () {
+                    // Get.toNamed(Routes.REKAP);
+                  },
+                  child: const Icon(Icons.print),
+                )
+            ],
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -37,22 +70,16 @@ class RekapView extends GetView<RekapController> {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () {
-                      print("decrement");
-                    },
-                    child: SvgPicture.asset(
-                      "assets/ic_back_button.svg"
-                    )
-                  ),
+                      onTap: () {
+                        print("decrement");
+                      },
+                      child: SvgPicture.asset("assets/ic_back_button.svg")),
                   Utils.gapHorizontal(12),
                   GestureDetector(
-                    onTap: () {
-                      print("icnrements");
-                    },
-                    child: SvgPicture.asset(
-                      "assets/ic_forward_button.svg"
-                    )
-                  ),
+                      onTap: () {
+                        print("icnrements");
+                      },
+                      child: SvgPicture.asset("assets/ic_forward_button.svg")),
                 ],
               ),
               Expanded(
@@ -68,5 +95,4 @@ class RekapView extends GetView<RekapController> {
       ),
     );
   }
-
 }

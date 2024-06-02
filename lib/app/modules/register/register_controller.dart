@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
+import 'package:teh_kota/app/data/cloud_firestore_service.dart';
 
+import '../../db/databse_helper.dart';
 import '../../locator.dart';
 import '../../services/camera.service.dart';
 import '../../services/face_detector_service.dart';
@@ -10,14 +12,15 @@ enum ViewType {
   create,
 }
 
-class TestingController extends GetxController {
+class RegisterController extends GetxController {
   var viewType = ViewType.list.obs;
   // Face Recognition
   final MLService _mlService = locator<MLService>();
   final FaceDetectorService _mlKitService = locator<FaceDetectorService>();
   final CameraService _cameraService = locator<CameraService>();
   var loading = false.obs;
-  var listKaryawan = [].obs;
+  DatabaseHelper dbHelper = DatabaseHelper.instance;
+  CloudFirestoreService firestore = CloudFirestoreService();
 
   @override
   void onInit() async {

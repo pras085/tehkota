@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
-import 'package:teh_kota/app/modules/testing/testing_binding.dart';
-import 'package:teh_kota/app/modules/testing/testing_view.dart';
+import 'package:teh_kota/app/modules/register/register_binding.dart';
+import 'package:teh_kota/app/modules/register/register_view.dart';
 
-import '../modules/admin/admin_binding.dart';
-import '../modules/admin/admin_view.dart';
+import '../modules/profile/profile_binding.dart';
+import '../modules/profile/profile_view.dart';
 import '../modules/home/home_binding.dart';
 import '../modules/home/home_view.dart';
 import '../modules/login/login_binding.dart';
@@ -24,9 +24,9 @@ class AppPages {
 
   static final routes = [
     GetPage(
-      name: Routes.TESTING,
-      page: () => const TestingView(),
-      binding: TestingBinding(),
+      name: Routes.REGISTER,
+      page: () => const RegisterView(),
+      binding: RegisterBinding(),
     ),
     GetPage(
       name: Routes.HOME,
@@ -40,8 +40,8 @@ class AppPages {
     ),
     GetPage(
       name: Routes.ADMIN,
-      page: () => const AdminView(),
-      binding: AdminBinding(),
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
     ),
     GetPage(
       name: Routes.RIWAYAT,

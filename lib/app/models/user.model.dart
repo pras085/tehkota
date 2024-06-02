@@ -1,24 +1,24 @@
 import 'dart:convert';
 
 class User {
-  String user;
+  String userName;
   List modelData;
 
   User({
-    required this.user,
+    required this.userName,
     required this.modelData,
   });
 
   static User fromMap(Map<String, dynamic> user) {
     return User(
-      user: user['user'],
+      userName: user['user'],
       modelData: jsonDecode(user['model_data']),
     );
   }
 
   toMap() {
     return {
-      'user': user,
+      'user': userName,
       'model_data': jsonEncode(modelData),
     };
   }

@@ -6,7 +6,6 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/user.model.dart';
 
-
 class DatabaseHelper {
   static const _databaseName = "MyDatabase.db";
   static const _databaseVersion = 1;
@@ -14,7 +13,6 @@ class DatabaseHelper {
   static const table = 'users';
   static const columnId = 'id';
   static const columnUser = 'user';
-  // static const columnPassword = 'password';
   static const columnModelData = 'model_data';
 
   DatabaseHelper._privateConstructor();
@@ -29,19 +27,10 @@ class DatabaseHelper {
   _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
-    return await openDatabase(path,
-        version: _databaseVersion, onCreate: _onCreate);
+    return await openDatabase(path, version: _databaseVersion, onCreate: _onCreate);
   }
 
   Future _onCreate(Database db, int version) async {
-  //   await db.execute('''
-  //         CREATE TABLE $table (
-  //           $columnId INTEGER PRIMARY KEY,
-  //           $columnUser TEXT NOT NULL,
-  //           $columnPassword TEXT NOT NULL,
-  //           $columnModelData TEXT NOT NULL
-  //         )
-  //         ''');
     await db.execute('''
           CREATE TABLE $table (
             $columnId INTEGER PRIMARY KEY,
@@ -66,4 +55,6 @@ class DatabaseHelper {
     Database db = await instance.database;
     return await db.delete(table);
   }
+
+  
 }
