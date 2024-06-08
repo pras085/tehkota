@@ -11,7 +11,7 @@ class DatabaseHelper {
   static const _databaseVersion = 1;
 
   static const table = 'users';
-  static const columnId = 'id';
+  static const columnId = 'userID';
   static const columnUser = 'user';
   static const columnModelData = 'model_data';
 
@@ -33,7 +33,7 @@ class DatabaseHelper {
   Future _onCreate(Database db, int version) async {
     await db.execute('''
           CREATE TABLE $table (
-            $columnId INTEGER PRIMARY KEY,
+            $columnId TEXT PRIMARY KEY,
             $columnUser TEXT NOT NULL,
             $columnModelData TEXT NOT NULL
           )
@@ -55,6 +55,4 @@ class DatabaseHelper {
     Database db = await instance.database;
     return await db.delete(table);
   }
-
-  
 }

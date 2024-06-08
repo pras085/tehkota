@@ -12,7 +12,7 @@ class CardPresenceDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var res = Utils.specifyTypeStatus(int.tryParse(listPresence["status"]));
+    var res = Utils.specifyTypeStatus(int.tryParse(listPresence["status"] ?? ""));
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(12),
@@ -36,7 +36,7 @@ class CardPresenceDetail extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 150),
                 child: CustomText(
-                  listPresence["name"],
+                  listPresence["userName"],
                   fontSize: 12,
                 ),
               ),
@@ -101,7 +101,7 @@ class CardPresenceDetail extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               CustomText(
-                                listPresence["presensi_masuk"] ?? "-",
+                                listPresence["login_presence"] != null ? Utils.formatTime(DateTime.tryParse(listPresence["login_presence"])) : "-",
                                 color: const Color(AppColor.colorBlackNormal),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -122,7 +122,7 @@ class CardPresenceDetail extends StatelessWidget {
                           Column(
                             children: [
                               CustomText(
-                                listPresence["presensi_keluar"] ?? "-",
+                                listPresence["logout_presence"] != null ? Utils.formatTime(DateTime.tryParse(listPresence["logout_presence"])) : "-",
                                 color: const Color(AppColor.colorBlackNormal),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -143,11 +143,11 @@ class CardPresenceDetail extends StatelessWidget {
                           Column(
                             children: [
                               CustomText(
-                                listPresence["presensi_masuk"] != null && listPresence["presensi_keluar"] != null
-                                    ? Utils.funcHourCalculate(
-                                        listPresence["presensi_masuk"].toString().isNotEmpty ? listPresence["presensi_masuk"] : "0.0",
-                                        listPresence["presensi_keluar"].toString().isNotEmpty ? listPresence["presensi_keluar"] : "0.0",
-                                        jamLembur: (listPresence["lembur"] ?? "0.0").toString().isNotEmpty ? listPresence["lembur"] : "0.0",
+                                listPresence["login_presence"] != null && listPresence["logout_presence"] != null
+                                    ? Utils.funcHourCalculateTotal(
+                                        DateTime.tryParse((listPresence["login_presence"]))!,
+                                        DateTime.tryParse((listPresence["logout_presence"]))!,
+                                        jamLembur: listPresence["lembur"],
                                       )
                                     : "-",
                                 color: const Color(AppColor.colorBlackNormal),
@@ -194,7 +194,7 @@ class CardPresenceDetail extends StatelessWidget {
   }
 
   Widget _statusPresenceWidget(Map listPresence) {
-    var res = Utils.specifyTypeStatus(int.tryParse(listPresence["status"]));
+    var res = Utils.specifyTypeStatus(int.tryParse(listPresence["status"] ?? "0"));
     if (res == TypeStatus.berlangsung) {
       return Container(
         decoration: BoxDecoration(

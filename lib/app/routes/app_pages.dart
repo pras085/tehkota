@@ -8,10 +8,10 @@ import '../modules/home/home_binding.dart';
 import '../modules/home/home_view.dart';
 import '../modules/login/login_binding.dart';
 import '../modules/login/login_view.dart';
-import '../modules/rekap/rekap_binding.dart';
-import '../modules/rekap/rekap_view.dart';
-import '../modules/riwayat/riwayat_binding.dart';
-import '../modules/riwayat/riwayat_view.dart';
+import '../modules/recap/recap_binding.dart';
+import '../modules/recap/recap_view.dart';
+import '../modules/history/history_binding.dart';
+import '../modules/history/history_view.dart';
 import '../modules/splash_screen/splash_binding.dart';
 import '../modules/splash_screen/splash_view.dart';
 
@@ -44,12 +44,12 @@ class AppPages {
       binding: ProfileBinding(),
     ),
     GetPage(
-      name: Routes.RIWAYAT,
-      page: () => const RiwayatView(),
-      binding: RiwayatBinding(),
+      name: Routes.HISTORY,
+      page: () => const HistoryView(),
+      binding: HistoryBinding(),
     ),
     GetPage(
-      name: Routes.REKAP,
+      name: Routes.RECAP,
       page: () => const RekapView(),
       binding: RekapBinding(),
     ),

@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-class RiwayatController extends GetxController {
+class HistoryController extends GetxController {
   var shiftToday = [
     {
       "name": "Shift Pagi",

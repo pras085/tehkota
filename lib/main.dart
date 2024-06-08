@@ -16,7 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   FlutterError.onError = (FlutterErrorDetails details) {
     // Log or handle the error details
-    debugPrint("$details");
+    debugPrint("ERROR DETAIL $details");
   };
   setupServices();
   await Firebase.initializeApp();

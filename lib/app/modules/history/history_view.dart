@@ -12,14 +12,14 @@ import 'package:teh_kota/app/widgets/card_presence_detail.dart';
 import 'package:teh_kota/app/widgets/custom_appbar.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
 
-import 'riwayat_controller.dart';
+import 'history_controller.dart';
 
-class RiwayatView extends GetView<RiwayatController> {
-  const RiwayatView({super.key});
+class HistoryView extends GetView<HistoryController> {
+  const HistoryView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Get.put(RiwayatController());
+    Get.put(HistoryController());
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       appBar: CustomAppBar(
@@ -51,7 +51,7 @@ class RiwayatView extends GetView<RiwayatController> {
                 if (!Utils.isAdmin.value)
                   InkWell(
                     onTap: () {
-                      Get.toNamed(Routes.REKAP);
+                      Get.toNamed(Routes.RECAP);
                     },
                     child: SvgPicture.asset(
                       "assets/ic_recap.svg",

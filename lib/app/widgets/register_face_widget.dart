@@ -18,14 +18,14 @@ import '../services/ml_service.dart';
 import 'FacePainter.dart';
 import 'camera_header.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({Key? key}) : super(key: key);
+class RegisterFace extends StatefulWidget {
+  const RegisterFace({Key? key}) : super(key: key);
 
   @override
-  SignUpState createState() => SignUpState();
+  RegisterFaceState createState() => RegisterFaceState();
 }
 
-class SignUpState extends State<SignUp> {
+class RegisterFaceState extends State<RegisterFace> {
   String? imagePath;
   Face? faceDetected;
   Size? imageSize;
@@ -51,8 +51,8 @@ class SignUpState extends State<SignUp> {
 
   @override
   void dispose() {
-    _cameraService.dispose();
     super.dispose();
+    _cameraService.dispose();
   }
 
   _start() async {
@@ -236,16 +236,17 @@ class AuthActionButtonState extends State<AuthActionButton> {
   User? predictedUser;
 
   Future _signUpEmployee(context) async {
-    DatabaseHelper _databaseHelper = DatabaseHelper.instance;
+    DatabaseHelper databaseHelper = DatabaseHelper.instance;
     List predictedData = _mlService.predictedData;
     String userNameC = _userTextEditingController.text;
-    User userToSave = User(
-      userName: userNameC,
-      modelData: predictedData,
-    );
     var res = await controller.firestore.addEmployee({"name": userNameC});
-    if (res) {
-      await _databaseHelper.insert(userToSave);
+    if (res.trim().isNotEmpty) {
+      User userToSave = User(
+        userID: res,
+        userName: userNameC,
+        modelData: predictedData,
+      );
+      await databaseHelper.insert(userToSave);
       _mlService.setPredictedData([]);
       Get.back(closeOverlays: true);
       Get.back(closeOverlays: true);

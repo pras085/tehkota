@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-import 'rekap_controller.dart';
+import 'recap_controller.dart';
 
 class RekapBinding extends Bindings {
   @override

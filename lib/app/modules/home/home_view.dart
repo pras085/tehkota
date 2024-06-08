@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:get/get.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:teh_kota/app/routes/app_pages.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
@@ -45,17 +46,28 @@ class HomeView extends GetView<HomeController> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          width: Get.width,
-          height: Get.height,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _shiftTodayWidget(),
-              _historyPresenceWidget(),
-            ],
+      body: SmartRefresher(
+        controller: controller.refreshC,
+        onRefresh: () async {
+          await controller.getDataFromApi();
+          await Future.delayed(Duration(seconds: 1));
+          controller.refreshC.refreshCompleted();
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
+          child: Container(
+            width: Get.width,
+            height: Get.height,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _shiftTodayWidget(),
+                _historyPresenceWidget(),
+              ],
+            ),
           ),
         ),
       ),
@@ -82,6 +94,7 @@ class HomeView extends GetView<HomeController> {
   }
 
   _shiftTodayWidget() {
+    DateTime now = DateTime.now();
     return Column(
       children: [
         Row(
@@ -99,7 +112,7 @@ class HomeView extends GetView<HomeController> {
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
               child: CustomText(
-                controller.shiftToday[0]["name"] ?? "",
+                (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ? Utils.typeShiftToString(TypeShift.shiftPagi) : Utils.typeShiftToString(TypeShift.shiftSore),
                 color: const Color(AppColor.colorWhite),
                 fontWeight: FontWeight.w600,
               ),
@@ -109,17 +122,31 @@ class HomeView extends GetView<HomeController> {
         Utils.gapVertical(16),
         Row(
           children: [
-            _cardShiftTodayWidget(
-              "Presensi Masuk",
-              controller.shiftToday[0]['name'] ?? "",
-              controller.shiftToday[0]['presensi_masuk'] ?? "",
-            ),
-            Utils.gapHorizontal(16),
-            _cardShiftTodayWidget(
-              "Presensi Keluar",
-              controller.shiftToday[0]['name'] ?? "",
-              controller.shiftToday[0]['presensi_keluar'] ?? "",
-            ),
+            if (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ...[
+              _cardShiftTodayWidget(
+                "Presensi Masuk",
+                Utils.typeShiftToString(TypeShift.shiftPagi),
+                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!),
+              ),
+              Utils.gapHorizontal(16),
+              _cardShiftTodayWidget(
+                "Presensi Keluar",
+                Utils.typeShiftToString(TypeShift.shiftPagi),
+                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!),
+              ),
+            ] else if (now.isAfter(Utils.pickOfficeHours(((Utils.officeHours(TypeShift.shiftSore)) as Map)["login_presence"])) && now.isBefore(((Utils.officeHours(TypeShift.shiftSore)) as Map)["logout_presence"])) ...[
+              _cardShiftTodayWidget(
+                "Presensi Masuk",
+                Utils.typeShiftToString(TypeShift.shiftSore),
+                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!),
+              ),
+              Utils.gapHorizontal(16),
+              _cardShiftTodayWidget(
+                "Presensi Keluar",
+                Utils.typeShiftToString(TypeShift.shiftSore),
+                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!),
+              ),
+            ]
           ],
         ),
         Utils.gapVertical(16),
@@ -128,70 +155,68 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _cardShiftTodayWidget(String title, String subTitle, String value) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: const Color(AppColor.colorWhite),
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Color(AppColor.colorGreen),
-                    shape: BoxShape.circle,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: const Color(AppColor.colorWhite),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Color(AppColor.colorGreen),
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(4),
+                width: 28,
+                height: 28,
+                child: SvgPicture.asset(
+                  "assets/ic_login.svg",
+                  height: 20,
+                  width: 20,
+                ),
+              ),
+              Utils.gapHorizontal(8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    title,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
                   ),
-                  padding: const EdgeInsets.all(4),
-                  width: 28,
-                  height: 28,
-                  child: SvgPicture.asset(
-                    "assets/ic_login.svg",
-                    height: 20,
-                    width: 20,
+                  CustomText(
+                    subTitle,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 10,
+                    color: const Color(AppColor.colorDarkGrey),
                   ),
-                ),
-                Utils.gapHorizontal(8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      title,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    CustomText(
-                      subTitle,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 10,
-                      color: const Color(AppColor.colorDarkGrey),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            Utils.gapVertical(10),
-            Row(
-              children: [
-                CustomText(
-                  value,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-                Utils.gapHorizontal(4),
-                const CustomText(
-                  "WIB",
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Color(AppColor.colorDarkGrey),
-                ),
-              ],
-            ),
-          ],
-        ),
+                ],
+              ),
+            ],
+          ),
+          Utils.gapVertical(10),
+          Row(
+            children: [
+              CustomText(
+                value,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+              Utils.gapHorizontal(4),
+              const CustomText(
+                "WIB",
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Color(AppColor.colorDarkGrey),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -209,7 +234,7 @@ class HomeView extends GetView<HomeController> {
                 fontWeight: FontWeight.w600,
               ),
               GestureDetector(
-                onTap: () => Get.toNamed(Routes.RIWAYAT),
+                onTap: () => Get.toNamed(Routes.HISTORY),
                 child: const CustomText(
                   "Lihat Semua",
                   fontSize: 12,
@@ -219,15 +244,18 @@ class HomeView extends GetView<HomeController> {
               ),
             ],
           ),
-          Expanded(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: controller.listDataPresence.length,
-              itemBuilder: (context, i) {
-                return CardPresenceDetail(controller.listDataPresence[i]);
-              },
-            ),
-          )
+          Obx(() {
+            return Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: controller.listDataPresence.value.length,
+                itemBuilder: (context, i) {
+                  return CardPresenceDetail(controller.listDataPresence.value[i]);
+                },
+              ),
+            );
+          })
         ],
       ),
     );

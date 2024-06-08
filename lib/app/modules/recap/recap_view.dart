@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:teh_kota/app/modules/recap/recap_controller.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/widgets/card_recap_detail.dart';
 import 'package:teh_kota/app/widgets/custom_appbar.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
 
 import '../../utils/utils.dart';
-import 'rekap_controller.dart';
 
 class RekapView extends GetView<RekapController> {
   const RekapView({super.key});

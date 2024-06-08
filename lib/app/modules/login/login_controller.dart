@@ -55,6 +55,7 @@ class LoginController extends GetxController {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setBool('isLoggedIn', true);
       Utils.isAdmin.value = true;
+      Utils.isLoggedIn.value = true;
       Get.offAll(() => const PageViewAdminController());
     }
   }

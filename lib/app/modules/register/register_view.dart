@@ -7,7 +7,7 @@ import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/custom_appbar.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
-import 'package:teh_kota/app/widgets/sign-up.dart';
+import 'package:teh_kota/app/widgets/register_face_widget.dart';
 
 class RegisterView extends GetView<RegisterController> {
   const RegisterView({super.key});
@@ -22,7 +22,7 @@ class RegisterView extends GetView<RegisterController> {
             return Future.value(false);
           } else {
             Get.back();
-            return Future.value(false);
+            return Future.value(true);
           }
         },
         child: Scaffold(
@@ -70,7 +70,7 @@ class RegisterView extends GetView<RegisterController> {
                         ),
                       ),
                     ),
-                   Expanded(
+                  Expanded(
                     child: CustomText(
                       "Data Karyawan",
                       fontSize: 16,
@@ -167,21 +167,7 @@ class RegisterView extends GetView<RegisterController> {
                                 )
                               else
                                 const SizedBox.shrink(), // Todo Developement
-                              // Container(
-                              //   decoration: BoxDecoration(
-                              //     borderRadius: const BorderRadius.all(Radius.circular(8)),
-                              //     border: Border.all(color: const Color(AppColor.colorDarkGrey), strokeAlign: BorderSide.strokeAlignOutside),
-                              //     color: const Color(AppColor.colorLightGrey),
-                              //   ),
-                              //   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                              //   child: CustomText(
-                              //     Utils.typeShiftToString(Utils.specifyTypeShift(int.tryParse(listPresence["shift"]))),
-                              //     fontSize: 8,
-                              //     fontWeight: FontWeight.w600,
-                              //   ),
-                              // ),
                               Utils.gapHorizontal(6),
-                              // _statusPresenceWidget(listPresence),
                             ],
                           ),
                         ],
@@ -238,8 +224,13 @@ class RegisterView extends GetView<RegisterController> {
                 onTap: () async {
                   var res = await Utils.showAlertDialog(context, "Apakah anda yakin ingin menghapus database ?");
                   if (res) {
-                    await controller.dbHelper.deleteAll();
-                    Utils.showToast(TypeToast.success, "Berhasil menghapus database!");
+                    try {
+                      await controller.dbHelper.deleteAll();
+                      await controller.firestore.deleteCollection('users');
+                      Utils.showToast(TypeToast.success, "Berhasil menghapus database!");
+                    } catch (e) {
+                      print('Error deleting collection: $e');
+                    }
                   }
                 },
                 child: Container(
@@ -277,7 +268,7 @@ class RegisterView extends GetView<RegisterController> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (BuildContext context) => const SignUp()),
+                    MaterialPageRoute(builder: (BuildContext context) => const RegisterFace()),
                   );
                 },
                 child: Container(

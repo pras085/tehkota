@@ -7,7 +7,7 @@ import 'package:teh_kota/app/utils/app_colors.dart';
 
 enum TypeToast { error, success }
 
-enum TypeShift { shiftPagi, shiftSiang, shiftSore }
+enum TypeShift { shiftPagi, shiftSore, shiftFull }
 
 enum TypeStatus { berlangsung, hadir, terlambat }
 
@@ -178,17 +178,17 @@ class Utils {
         case 0:
           return TypeShift.shiftPagi;
         case 1:
-          return TypeShift.shiftSiang;
-        case 2:
           return TypeShift.shiftSore;
+        case 2:
+          return TypeShift.shiftFull;
       }
     } else {
       switch (typeShift) {
         case TypeShift.shiftPagi:
           return 0;
-        case TypeShift.shiftSiang:
-          return 1;
         case TypeShift.shiftSore:
+          return 1;
+        case TypeShift.shiftFull:
           return 2;
       }
     }
@@ -198,53 +198,64 @@ class Utils {
     switch (typeShift) {
       case TypeShift.shiftPagi:
         return "Shift Pagi";
-      case TypeShift.shiftSiang:
-        return "Shift Siang";
       case TypeShift.shiftSore:
         return "Shift Sore";
+      case TypeShift.shiftFull:
+        return "Full Shift";
     }
   }
 
-  static String funcHourCalculate(String jamMasuk, String jamKeluar, {String jamLembur = "0.0"}) {
-    List<String> jamMasukParts = jamMasuk.split('.');
-    List<String> jamKeluarParts = jamKeluar.split('.');
-    List<String> jamParts = jamLembur.split('.');
+  static DateTime customDate(int hours, int minute) {
+    var customDate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, hours, minute);
+    return customDate;
+  }
 
-    int jamMasukJam = int.parse(jamMasukParts[0]);
-    int jamMasukMenit = int.parse(jamMasukParts[1]);
+  static String customShowJustTime(DateTime dateTime) {
+    return DateFormat('HH:mm').format(dateTime);
+  }
 
-    int jamKeluarJam = int.parse(jamKeluarParts[0]);
-    int jamKeluarMenit = int.parse(jamKeluarParts[1]);
+  static DateTime pickOfficeHours(DateTime officeHoursValue) {
+    var officeHourPicked = officeHoursValue;
+    return officeHourPicked;
+  }
 
-    int jamLemburJam = int.parse(jamParts[0]);
-    int jamLemburMenit = int.parse(jamParts[1]);
+  static Map<String, DateTime> officeHours(TypeShift typeShift) {
+    switch (typeShift) {
+      case TypeShift.shiftPagi:
+        return {
+          "login_presence": customDate(9, 0),
+          "logout_presence": customDate(15, 0),
+        };
+      case TypeShift.shiftSore:
+        return {
+          "login_presence": customDate(15, 0),
+          "logout_presence": customDate(21, 0),
+        };
+      case TypeShift.shiftFull:
+        return {
+          "login_presence": customDate(9, 0),
+          "logout_presence": customDate(21, 0),
+        };
+    }
+  }
 
-    int totalMenitMasuk = (jamMasukJam * 60 + jamMasukMenit).toInt();
-    int totalMenitKeluar = (jamKeluarJam * 60 + jamKeluarMenit).toInt();
-    int totalMenitLembur = (jamLemburJam * 60 + jamLemburMenit).toInt();
+  static String formatTime(DateTime? dateTime) {
+    if (dateTime == null) return "";
+    return DateFormat('HH.mm').format(dateTime);
+  }
 
-    // Hitung selisih jam dan menit
-    int selisihTotalMenit = totalMenitKeluar - totalMenitMasuk;
-    // Tambahkan jam lembur jika ada
-    selisihTotalMenit += totalMenitLembur;
+  static String funcHourCalculateTotal(DateTime jamMasuk, DateTime jamKeluar, {DateTime? jamLembur}) {
+    // Hitung selisih waktu antara jam masuk dan jam keluar
+    Duration selisihWaktu = jamKeluar.difference(jamMasuk);
+    // Tambahkan waktu lembur jika ada
+    if (jamLembur != null) {
+      selisihWaktu += jamLembur.difference(DateTime(0));
+    }
 
-    // Hitung jumlah total jam dan menit
-    int totalJam = selisihTotalMenit ~/ 60;
-    int totalMenit = selisihTotalMenit % 60;
-    // // Jika selisih menit negatif, atur ulang selisih jam dan menit
-    // if (totalMenit < 0) {
-    //   totalJam -= 1;
-    //   totalMenit += 60;
-    // }
-
-    // totalJam += (jamLembur ~/ 60); // Bagian int dari hasil bagi
-    // totalMenit += (jamLembur % 60); // Sisa dari hasil bagi
-
-    // // Jika selisih menit melebihi 60 menit
-    // if (totalMenit >= 60) {
-    //   totalJam += (totalMenit ~/ 60); // Bagian int dari hasil bagi
-    //   totalMenit = totalMenit % 60; // Sisa dari hasil bagi
-    // }
+    // Hitung total jam dan menit dari selisih waktu
+    int totalMenit = selisihWaktu.inMinutes;
+    int totalJam = totalMenit ~/ 60;
+    totalMenit %= 60;
 
     // Format hasil
     String hasilJam = totalJam.toString().padLeft(2, '0');
@@ -252,6 +263,40 @@ class Utils {
 
     return '$hasilJam.$hasilMenit';
   }
+
+  // static String funcHourCalculateTotal(String jamMasuk, String jamKeluar, {String jamLembur = "0.0"}) {
+  //   List<String> jamMasukParts = jamMasuk.split('.');
+  //   List<String> jamKeluarParts = jamKeluar.split('.');
+  //   List<String> jamParts = jamLembur.split('.');
+
+  //   int jamMasukJam = int.parse(jamMasukParts[0]);
+  //   int jamMasukMenit = int.parse(jamMasukParts[1]);
+
+  //   int jamKeluarJam = int.parse(jamKeluarParts[0]);
+  //   int jamKeluarMenit = int.parse(jamKeluarParts[1]);
+
+  //   int jamLemburJam = int.parse(jamParts[0]);
+  //   int jamLemburMenit = int.parse(jamParts[1]);
+
+  //   int totalMenitMasuk = (jamMasukJam * 60 + jamMasukMenit).toInt();
+  //   int totalMenitKeluar = (jamKeluarJam * 60 + jamKeluarMenit).toInt();
+  //   int totalMenitLembur = (jamLemburJam * 60 + jamLemburMenit).toInt();
+
+  //   // Hitung selisih jam dan menit
+  //   int selisihTotalMenit = totalMenitKeluar - totalMenitMasuk;
+  //   // Tambahkan jam lembur jika ada
+  //   selisihTotalMenit += totalMenitLembur;
+
+  //   // Hitung jumlah total jam dan menit
+  //   int totalJam = selisihTotalMenit ~/ 60;
+  //   int totalMenit = selisihTotalMenit % 60;
+
+  //   // Format hasil
+  //   String hasilJam = totalJam.toString().padLeft(2, '0');
+  //   String hasilMenit = totalMenit.toString().padLeft(2, '0');
+
+  //   return '$hasilJam.$hasilMenit';
+  // }
 
   static int? convertHoursToMinute(String? hoursVal) {
     if (hoursVal == null) return null;

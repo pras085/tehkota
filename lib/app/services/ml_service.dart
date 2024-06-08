@@ -13,6 +13,7 @@ import 'image_converter.dart';
 class MLService {
   Interpreter? _interpreter;
   double threshold = 0.5;
+  double tolerance = 0.5; // nilai toleransi sesuai kebutuhan
 
   List _predictedData = [];
   List get predictedData => _predictedData;
@@ -25,22 +26,19 @@ class MLService {
           options: GpuDelegateOptionsV2(
             isPrecisionLossAllowed: false,
             inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
-            inferencePriority1: TfLiteGpuInferencePriority.minLatency,
+            inferencePriority1: TfLiteGpuInferencePriority.maxPrecision,
             inferencePriority2: TfLiteGpuInferencePriority.auto,
             inferencePriority3: TfLiteGpuInferencePriority.auto,
           ),
         );
       } else if (Platform.isIOS) {
         delegate = GpuDelegate(
-          options: GpuDelegateOptions(
-              allowPrecisionLoss: true,
-              waitType: TFLGpuDelegateWaitType.active),
+          options: GpuDelegateOptions(allowPrecisionLoss: true, waitType: TFLGpuDelegateWaitType.active),
         );
       }
       var interpreterOptions = InterpreterOptions()..addDelegate(delegate);
 
-      _interpreter = await Interpreter.fromAsset('mobilefacenet.tflite',
-          options: interpreterOptions);
+      _interpreter = await Interpreter.fromAsset('mobilefacenet.tflite', options: interpreterOptions);
     } catch (e) {
       print('Failed to load model.');
       print(e);
@@ -79,8 +77,7 @@ class MLService {
     double y = faceDetected.boundingBox.top - 10.0;
     double w = faceDetected.boundingBox.width + 10.0;
     double h = faceDetected.boundingBox.height + 10.0;
-    return imglib.copyCrop(
-        convertedImage, x.round(), y.round(), w.round(), h.round());
+    return imglib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
   }
 
   imglib.Image _convertCameraImage(CameraImage image) {
@@ -113,11 +110,9 @@ class MLService {
     double currDist = 0.0;
     User? predictedResult;
 
-    print('JUMLAH USER => ${users.length}');
-
     for (User u in users) {
       currDist = _euclideanDistance(u.modelData, predictedData);
-      if (currDist <= threshold && currDist < minDist) {
+      if (currDist <= threshold + tolerance && currDist < minDist) {
         minDist = currDist;
         predictedResult = u;
       }
