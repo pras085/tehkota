@@ -9,7 +9,7 @@ enum TypeToast { error, success }
 
 enum TypeShift { shiftPagi, shiftSore, shiftFull }
 
-enum TypeStatus { berlangsung, hadir, terlambat }
+enum TypeStatus { berlangsung, tepatWaktu, terlambat }
 
 class Utils {
   static FirebaseFirestore? firestore;
@@ -145,7 +145,7 @@ class Utils {
         case 0:
           return TypeStatus.berlangsung;
         case 1:
-          return TypeStatus.hadir;
+          return TypeStatus.tepatWaktu;
         case 2:
           return TypeStatus.terlambat;
       }
@@ -153,7 +153,7 @@ class Utils {
       switch (typeStatus) {
         case TypeStatus.berlangsung:
           return 0;
-        case TypeStatus.hadir:
+        case TypeStatus.tepatWaktu:
           return 1;
         case TypeStatus.terlambat:
           return 2;
@@ -165,8 +165,8 @@ class Utils {
     switch (typeStatus) {
       case TypeStatus.berlangsung:
         return "Berlangsung";
-      case TypeStatus.hadir:
-        return "Hadir";
+      case TypeStatus.tepatWaktu:
+        return "Tepat Waktu";
       case TypeStatus.terlambat:
         return "Terlambat";
     }
@@ -223,7 +223,7 @@ class Utils {
     switch (typeShift) {
       case TypeShift.shiftPagi:
         return {
-          "login_presence": customDate(9, 0),
+          "login_presence": customDate(0, 0),
           "logout_presence": customDate(15, 0),
         };
       case TypeShift.shiftSore:
@@ -244,8 +244,9 @@ class Utils {
     return DateFormat('HH.mm').format(dateTime);
   }
 
-  static String funcHourCalculateTotal(DateTime jamMasuk, DateTime jamKeluar, {DateTime? jamLembur}) {
+  static String funcHourCalculateTotal(DateTime? jamMasuk, DateTime? jamKeluar, {DateTime? jamLembur}) {
     // Hitung selisih waktu antara jam masuk dan jam keluar
+    if (jamMasuk == null || jamKeluar == null) return "";
     Duration selisihWaktu = jamKeluar.difference(jamMasuk);
     // Tambahkan waktu lembur jika ada
     if (jamLembur != null) {

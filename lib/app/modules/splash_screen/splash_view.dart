@@ -33,6 +33,7 @@ class SplashView extends GetView<SplashController> {
         ),
         bottomNavigationBar: Container(
           alignment: Alignment.center,
+          color: Colors.white,
           width: Get.width,
           height: 50,
           child: CustomText(

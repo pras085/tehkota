@@ -42,19 +42,22 @@ class CardPresenceDetail extends StatelessWidget {
               ),
               Utils.gapHorizontal(6),
               const Spacer(),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  border: Border.all(color: const Color(AppColor.colorDarkGrey), strokeAlign: BorderSide.strokeAlignOutside),
-                  color: const Color(AppColor.colorLightGrey),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                child: CustomText(
-                  Utils.typeShiftToString(Utils.specifyTypeShift(int.tryParse(listPresence["shift"]))),
-                  fontSize: 8,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              if (listPresence["shift"] != null)
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    border: Border.all(color: const Color(AppColor.colorDarkGrey), strokeAlign: BorderSide.strokeAlignOutside),
+                    color: const Color(AppColor.colorLightGrey),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  child: CustomText(
+                    Utils.typeShiftToString(Utils.specifyTypeShift(int.tryParse(listPresence["shift"]))),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              else
+                const SizedBox(),
               Utils.gapHorizontal(6),
               _statusPresenceWidget(listPresence),
             ],
@@ -75,13 +78,13 @@ class CardPresenceDetail extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       CustomText(
-                        Utils.formatTanggaLocal(DateTime.now().toString(), format: "d"),
+                        Utils.formatTanggaLocal(listPresence["login_presence"], format: "d"),
                         color: const Color(AppColor.colorWhite),
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
                       ),
                       CustomText(
-                        Utils.formatTanggaLocal(DateTime.now().toString(), format: "MMMM"),
+                        Utils.formatTanggaLocal(listPresence["login_presence"], format: "MMMM"),
                         color: const Color(AppColor.colorWhite),
                         fontSize: 14,
                       ),
@@ -210,7 +213,7 @@ class CardPresenceDetail extends StatelessWidget {
           color: const Color(AppColor.colorOrange),
         ),
       );
-    } else if (res == TypeStatus.hadir) {
+    } else if (res == TypeStatus.tepatWaktu) {
       return Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8)),

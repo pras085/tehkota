@@ -29,18 +29,18 @@ class HomeController extends GetxController {
   }
 
   Future<void> getDataFromApi() async {
-    // listDataPresence.clear();
+    listDataPresence.clear();
     // add dummy
-    listDataPresence.value.add(
-      {
-        "userName": "Rizka dfdsd",
-        "shift": "0",
-        "login_presence": "2024-06-08 16:18:36.968159",
-        // "logout_presence": "",
-        // "lembur": "1.20",
-        // "status": "0",
-      },
-    );
+    // listDataPresence.value.add(
+    //   {
+    //     "userName": "Rizka dfdsd",
+    //     "shift": "0",
+    //     "login_presence": "2024-05-07 16:18:36.968159",
+    //     // "logout_presence": "",
+    //     // "lembur": "1.20",
+    //     // "status": "0",
+    //   },
+    // );
     List<Map<String, dynamic>>? listPresenceApi = await firestore.getAllPresence();
     if (listPresenceApi != null) {
       // List<Map<String, dynamic>> filteredData = listPresenceApi.where((map) => map.isNotEmpty && map.keys.first.startsWith("EMP")).toList();

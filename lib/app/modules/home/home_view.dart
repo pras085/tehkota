@@ -155,68 +155,70 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _cardShiftTodayWidget(String title, String subTitle, String value) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: const Color(AppColor.colorWhite),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  color: Color(AppColor.colorGreen),
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(4),
-                width: 28,
-                height: 28,
-                child: SvgPicture.asset(
-                  "assets/ic_login.svg",
-                  height: 20,
-                  width: 20,
-                ),
-              ),
-              Utils.gapHorizontal(8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    title,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: const Color(AppColor.colorWhite),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    color: Color(AppColor.colorGreen),
+                    shape: BoxShape.circle,
                   ),
-                  CustomText(
-                    subTitle,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 10,
-                    color: const Color(AppColor.colorDarkGrey),
+                  padding: const EdgeInsets.all(4),
+                  width: 28,
+                  height: 28,
+                  child: SvgPicture.asset(
+                    "assets/ic_login.svg",
+                    height: 20,
+                    width: 20,
                   ),
-                ],
-              ),
-            ],
-          ),
-          Utils.gapVertical(10),
-          Row(
-            children: [
-              CustomText(
-                value,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-              Utils.gapHorizontal(4),
-              const CustomText(
-                "WIB",
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: Color(AppColor.colorDarkGrey),
-              ),
-            ],
-          ),
-        ],
+                ),
+                Utils.gapHorizontal(8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      title,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    CustomText(
+                      subTitle,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 10,
+                      color: const Color(AppColor.colorDarkGrey),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Utils.gapVertical(10),
+            Row(
+              children: [
+                CustomText(
+                  value,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+                Utils.gapHorizontal(4),
+                const CustomText(
+                  "WIB",
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Color(AppColor.colorDarkGrey),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

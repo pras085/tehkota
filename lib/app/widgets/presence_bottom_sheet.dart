@@ -17,7 +17,7 @@ class PresenceBottomSheet extends StatefulWidget {
     this.listPresence,
     this.typePresence = 1,
   }) : super(key: key);
-  final Map? listPresence;
+  final Map<String, dynamic>? listPresence;
   final User? user;
   final int statusPresence; // 1 : Berhasil, - : Gagal
   final int typePresence; // 1 : Masuk, - : Keluar
@@ -27,85 +27,120 @@ class PresenceBottomSheet extends StatefulWidget {
 }
 
 class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
-  // Status Presence
+  CloudFirestoreService firestore = CloudFirestoreService();
+  final selectedTab = RxnInt(); // Variabel untuk menyimpan id tombol yang terpilih
+  int? typePresence;
+  var body = Rxn<Map<String, dynamic>>();
+
   @override
-  Widget build(BuildContext context) {
-    CloudFirestoreService firestore = CloudFirestoreService();
-    final selectedTab = RxnInt(); // Variabel untuk menyimpan id tombol yang terpilih
-    int? typePresence;
+  void initState() {
+    super.initState();
+
     setState(() {
       typePresence = widget.typePresence;
+      body.value = widget.listPresence;
+      body.refresh();
+      if (body.value?.containsKey("shift") ?? false) {
+        selectedTab.value = int.parse(body.value?["shift"]);
+      }
     });
+    print("LIST PRESENCE : ${body.value}");
+  }
 
-    void setFieldShift() async {
-      await firestore.getPresence(widget.listPresence?["docID"])?.then((value) async {
-        // var idUser = value['userID'];
-        if (value.data()?.containsKey(widget.listPresence?["userID"]) ?? false) {
-          var resAdd = await firestore.addPresence(
-            widget.listPresence?["docID"],
-            {"shift": selectedTab.value.toString()},
-            widget.listPresence?["userID"],
-          );
-          if (!resAdd) {
-            return;
+  Future<void> setFieldShift() async {
+    await firestore.getPresence(body.value?["docID"])?.then((value) async {
+      // var idUser = value['userID'];
+      if (value.data()?.containsKey(body.value?["userID"]) ?? false) {
+        Map<String, dynamic> dataPresenceSelected = value.data()?['${body.value?["userID"]}'];
+        var typeShift = Utils.specifyTypeShift(selectedTab.value);
+        body.value = {
+          "shift": selectedTab.value.toString(),
+          "status": "",
+        };
+        if (typePresence == 1) {
+          if (typeShift == TypeShift.shiftSore) {
+            if (DateTime.parse(dataPresenceSelected["login_presence"]).isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
+              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false).toString();
+            } else {
+              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false).toString();
+            }
           } else {
-            Get.back();
-            Get.back();
+            if (DateTime.parse(dataPresenceSelected["login_presence"]).isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) {
+              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false).toString();
+            } else {
+              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false).toString();
+            }
           }
         }
-      }).catchError((error) {
-        print('Error getPresence: $error');
-        return;
-      });
-    }
-
-    Widget shiftButton(TypeShift typeShift) {
-      return InkWell(
-        onTap: () {
-          selectedTab.value = Utils.specifyTypeShift(typeShift, fromInt: false);
-          setFieldShift();
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: selectedTab.value == Utils.specifyTypeShift(typeShift, fromInt: false) ? const Color(AppColor.colorLightGreen) : Colors.transparent),
-          ),
-          child: CustomText(
-            Utils.typeShiftToString(typeShift),
-            fontSize: 14,
-          ),
-        ),
-      );
-    }
-
-    Widget generateShiftButton() {
-      var now = DateTime.now();
-      if (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            shiftButton(TypeShift.shiftPagi),
-            shiftButton(TypeShift.shiftFull),
-          ],
+        var resAdd = await firestore.addPresence(
+          body.value?["docID"],
+          body.value ?? {},
+          body.value?["userID"],
         );
-      } else if (now.isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!)) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            shiftButton(TypeShift.shiftSore),
-            shiftButton(TypeShift.shiftFull),
-          ],
-        );
+        if (!resAdd) {
+          throw "";
+        }
       }
-      return const SizedBox();
-    }
+    }).catchError((error) {
+      print('Error getPresence: $error');
+      Utils.showToast(TypeToast.error, "Terjadi Kesalahan Sistem");
+      return;
+    });
+  }
 
+  Widget shiftButton(TypeShift typeShift) {
+    return InkWell(
+      onTap: () async {
+        selectedTab.value = Utils.specifyTypeShift(typeShift, fromInt: false);
+        await setFieldShift();
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: selectedTab.value == Utils.specifyTypeShift(typeShift, fromInt: false) ? const Color(AppColor.colorLightGreen) : Colors.transparent),
+        ),
+        child: CustomText(
+          Utils.typeShiftToString(typeShift),
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     if (widget.statusPresence == 1) {
-      if (widget.listPresence != null && widget.listPresence!.containsKey("logout_presence")) {
-        typePresence = 2;
-      } // pengecekan untuk menampilkan tampilan presensi keluar
+      if (widget.listPresence != null) {
+        if (widget.listPresence!.containsKey("login_presence") && widget.listPresence!.containsKey("logout_presence")) {
+          return Container(
+            constraints: BoxConstraints(maxHeight: 250, minWidth: Get.width),
+            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              children: [
+                SvgPicture.asset("assets/ic_berhasil.svg"),
+                Utils.gapVertical(24),
+                const CustomText(
+                  "Anda sudah melakukan presensi hari ini !",
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
+              ],
+            ),
+          );
+        } else if ((widget.listPresence!.containsKey("logout_presence"))) {
+          typePresence = 2; // pengecekan untuk menampilkan tampilan presensi keluar
+        }
+      }
       return WillPopScope(
         onWillPop: () async {
           if (typePresence == 2) {
@@ -118,158 +153,193 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
             return Future.value(false);
           }
           if (typePresence == 1) {
-            // TODO :
+            return Future.value(true);
           }
           return Future.value(true);
         },
-        child: Container(
-          constraints: BoxConstraints(maxHeight: typePresence == 2 ? 350 : 470),
-          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+        child: Obx(() {
+          return Container(
+            constraints: BoxConstraints(maxHeight: body.value == null || typePresence == 1 ? 450 : 330),
+            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
             ),
-          ),
-          child: Column(
-            children: [
-              SvgPicture.asset("assets/ic_berhasil.svg"),
-              Utils.gapVertical(16),
-              CustomText(
-                "Presensi " "${typePresence == 1 ? "Masuk" : "Keluar"}" " Berhasil",
-                fontSize: 20,
-                color: const Color(AppColor.colorGreen),
-                fontWeight: FontWeight.w600,
-              ),
-              Utils.gapVertical(4),
-              Text.rich(
-                TextSpan(
-                  text: "Selamat datang ",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Color(AppColor.colorBlack),
-                    fontFamily: "poppins",
-                  ),
-                  children: <InlineSpan>[
-                    TextSpan(
-                      text: widget.user?.userName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const TextSpan(
-                      text: ", Semangat kerjanya untuk hari ini!",
-                      style: TextStyle(fontWeight: FontWeight.w400),
-                    )
-                  ],
+            child: Column(
+              children: [
+                SvgPicture.asset("assets/ic_berhasil.svg"),
+                Utils.gapVertical(16),
+                CustomText(
+                  "Presensi " "${typePresence == 1 ? "Masuk" : "Keluar"}" " Berhasil",
+                  fontSize: 20,
+                  color: const Color(AppColor.colorGreen),
+                  fontWeight: FontWeight.w600,
                 ),
-                maxLines: 2,
-              ),
-              Utils.gapVertical(16),
-              if (typePresence == 1)
-                Container(
-                  width: Get.width,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: const Color(AppColor.colorLightGrey),
+                Utils.gapVertical(4),
+                Text.rich(
+                  TextSpan(
+                    text: "Selamat datang ",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Color(AppColor.colorBlack),
+                      fontFamily: "poppins",
+                    ),
+                    children: <InlineSpan>[
+                      TextSpan(
+                        text: widget.user?.userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const TextSpan(
+                        text: ", Semangat kerjanya untuk hari ini!",
+                        style: TextStyle(fontWeight: FontWeight.w400),
+                      )
+                    ],
                   ),
-                  padding: const EdgeInsets.all(16),
+                  maxLines: 2,
+                ),
+                Utils.gapVertical(16),
+                Obx(() {
+                  return Column(
+                    children: [
+                      if (selectedTab.value == null && typePresence == 1)
+                        Container(
+                          width: Get.width,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: const Color(AppColor.colorLightGrey),
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              const CustomText(
+                                "Pilih shift anda",
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              Utils.gapVertical(28),
+                              Obx(() => Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      if (DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
+                                        shiftButton(TypeShift.shiftSore),
+                                        shiftButton(TypeShift.shiftFull),
+                                      ] else ...[
+                                        shiftButton(TypeShift.shiftPagi),
+                                        shiftButton(TypeShift.shiftFull),
+                                      ]
+                                    ],
+                                  )),
+                            ],
+                          ),
+                        )
+                      else
+                        const SizedBox(),
+                      if (selectedTab.value == null && typePresence == 1) Utils.gapVertical(16) else const SizedBox(),
+                    ],
+                  );
+                }),
+                Expanded(
                   child: Column(
                     children: [
-                      const CustomText(
-                        "Pilih shift anda",
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              CustomText(
+                                typePresence == 1 ? "Jam Masuk" : "Jam Keluar",
+                                color: const Color(AppColor.colorDarkGrey),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              Utils.gapVertical(8),
+                              Obx(() {
+                                return CustomText(
+                                  (body.value?["login_presence"] != null && typePresence == 1)
+                                      ? (body.value?["logout_presence"] != null && typePresence == 2)
+                                          ? Utils.formatTime(DateTime.tryParse(body.value?["logout_presence"]))
+                                          : Utils.formatTime(DateTime.tryParse(body.value?["login_presence"]))
+                                      : "-",
+                                  color: const Color(AppColor.colorBlackNormal),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  textAlign: TextAlign.center,
+                                );
+                              }),
+                            ],
+                          ),
+                          Container(
+                            color: const Color(AppColor.colorLightGrey),
+                            height: 43,
+                            width: 1,
+                          ),
+                          Column(
+                            children: [
+                              const CustomText(
+                                "Shift",
+                                color: Color(AppColor.colorDarkGrey),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              Utils.gapVertical(8),
+                              Obx(() {
+                                return CustomText(
+                                  (body.value != null && body.value!["shift"] != null) ? Utils.typeShiftToString(Utils.specifyTypeShift(int.parse(body.value!["shift"]))) : "-",
+                                  color: const Color(AppColor.colorBlackNormal),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  textAlign: TextAlign.center,
+                                );
+                              }),
+                            ],
+                          ),
+                          Container(
+                            color: const Color(AppColor.colorLightGrey),
+                            height: 43,
+                            width: 1,
+                          ),
+                          Column(
+                            children: [
+                              const CustomText(
+                                "Status",
+                                color: Color(AppColor.colorDarkGrey),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              Utils.gapVertical(8),
+                              Obx(() {
+                                return CustomText(
+                                  (body.value != null && body.value!["status"] != null && typePresence == 1)
+                                      ? (typePresence == 2 && widget.listPresence != null && widget.listPresence!["status"] != null)
+                                          ? Utils.typeStatusToString(Utils.specifyTypeStatus(int.parse(widget.listPresence!["status"].toString())))
+                                          : Utils.typeStatusToString(Utils.specifyTypeStatus(int.parse(body.value!["status"].toString())))
+                                      : "-",
+                                  color: const Color(AppColor.colorBlackNormal),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  textAlign: TextAlign.center,
+                                );
+                              }),
+                            ],
+                          ),
+                        ],
                       ),
-                      Utils.gapVertical(28),
-                      Obx(() => generateShiftButton()),
                     ],
                   ),
                 ),
-              if (typePresence == 1) Utils.gapVertical(16),
-              Expanded(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomText(
-                              widget.listPresence?["login_presence"] != null ? Utils.formatTime(DateTime.tryParse(widget.listPresence?["login_presence"])) : "-",
-                              color: const Color(AppColor.colorBlackNormal),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              textAlign: TextAlign.center,
-                            ),
-                            const CustomText(
-                              "Masuk",
-                              color: Color(AppColor.colorDarkGrey),
-                              fontSize: 10,
-                            ),
-                          ],
-                        ),
-                        Container(
-                          color: const Color(AppColor.colorLightGrey),
-                          height: 44,
-                          width: 1,
-                        ),
-                        Column(
-                          children: [
-                            CustomText(
-                              widget.listPresence?["logout_presence"] ?? "-",
-                              color: const Color(AppColor.colorBlackNormal),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              textAlign: TextAlign.center,
-                            ),
-                            const CustomText(
-                              "Keluar",
-                              color: Color(AppColor.colorDarkGrey),
-                              fontSize: 10,
-                            ),
-                          ],
-                        ),
-                        Container(
-                          color: const Color(AppColor.colorLightGrey),
-                          height: 44,
-                          width: 1,
-                        ),
-                        Column(
-                          children: [
-                            CustomText(
-                              widget.listPresence != null && widget.listPresence?["login_presence"] != null && widget.listPresence?["logout_presence"] != null
-                                  ? Utils.funcHourCalculateTotal(
-                                      widget.listPresence!["login_presence"].toString().isNotEmpty ? widget.listPresence!["login_presence"] : "0.0",
-                                      widget.listPresence!["logout_presence"].toString().isNotEmpty ? widget.listPresence!["logout_presence"] : "0.0",
-                                      // jamLembur: (widget.listPresence?["lembur_time"] ?? "0.0").toString().isNotEmpty ? widget.listPresence!["lembur_time"] : "0.0",
-                                    )
-                                  : "-",
-                              color: const Color(AppColor.colorBlackNormal),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              textAlign: TextAlign.center,
-                            ),
-                            const CustomText(
-                              "Total",
-                              color: Color(AppColor.colorDarkGrey),
-                              fontSize: 10,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        }),
       );
     }
     return Container(
@@ -286,8 +356,8 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
         children: [
           SvgPicture.asset("assets/ic_gagal.svg"),
           Utils.gapVertical(16),
-          const CustomText(
-            "Presensi Masuk Gagal",
+          CustomText(
+            "Presensi ${typePresence == 1 ? "Masuk" : "Berhasil"} Gagal",
             fontSize: 20,
             color: Color(AppColor.colorRed),
             fontWeight: FontWeight.w600,

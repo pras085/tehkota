@@ -107,7 +107,6 @@ class _PresenceViewState extends State<PresenceView> {
     if (_faceDetectorService.faceDetected) {
       User? user = await _mlService.predict();
       Map<String, dynamic>? body;
-      var isError = false;
       if (user != null) {
         try {
           // jika belum ada yang presensi di hari itu - create doc baru
@@ -115,7 +114,6 @@ class _PresenceViewState extends State<PresenceView> {
             "id": const Uuid().v4(),
             "userID": user.userID,
             "userName": user.userName,
-            "status": Utils.typeStatusToString(Utils.specifyTypeStatus(TypeStatus.berlangsung)),
           };
           var res = await firestore.addPresence(docID, body, user.userID);
           if (!res) {
@@ -129,9 +127,11 @@ class _PresenceViewState extends State<PresenceView> {
               throw "ERROR resGetPresence";
             }
             Map<String, dynamic> presenceData = value.data()?[user.userID];
-            if (!(presenceData.containsKey("login_presence"))) {
+            if (presenceData.containsKey("login_presence") && presenceData.containsKey("logout_presence")) {
+              body?.putIfAbsent("login_presence", () => presenceData['login_presence']);
+              body?.putIfAbsent("logout_presence", () => presenceData['login_presence']);
+            } else if (!(presenceData.containsKey("login_presence"))) {
               // buat baru (presensi masuk)
-              // TODO : dev fitur terlambat disini
               var resLogin = await firestore.addPresence(
                 docID,
                 {"login_presence": DateTime.now().toLocal().toString()},
@@ -142,40 +142,50 @@ class _PresenceViewState extends State<PresenceView> {
               }
             } else if (!(presenceData.containsKey("logout_presence"))) {
               // (presensi keluar)
+              // TODO : dev lembur disini
+              // DateTime jamMasuk = presenceData["login_presence"];
+              // DateTime jamKeluar = presenceData["logout_presence"];
+
+              // if(presenceData['shift'] == "0"){ // shift Pagi
+              // if (condition) {
+              // ON PGORERESS
+              // }
+              // }
               var resLogout = await firestore.addPresence(
                 docID,
                 {"logout_presence": DateTime.now().toLocal().toString()},
                 body?["userID"],
               );
               if (resLogout) {
-                if (presenceData.containsKey("login_presence")) {
-                  body?.putIfAbsent("login_presence", () => presenceData["login_presence"]);
+                if (presenceData.containsKey("shift")) {
+                  body?.putIfAbsent("shift", () => presenceData["shift"]);
+                }
+                if (presenceData.containsKey("status")) {
+                  body?.putIfAbsent("status", () => presenceData["status"]);
                 }
                 body?.putIfAbsent("logout_presence", () => DateTime.now().toLocal().toString());
               }
             }
           }).catchError((error) {
             print('Error getPresence: $error');
-            isError = true;
-            throw "$error";
+          }).whenComplete(() {
+            bottomSheetController = scaffoldKey.currentState!.showBottomSheet(
+              (context) {
+                body?.putIfAbsent("docID", () => docID);
+                return signInSheet(user: user, body: body);
+              },
+              backgroundColor: Colors.transparent,
+              enableDrag: false,
+            );
+            bottomSheetController?.closed.whenComplete(_reload);
           });
         } catch (e) {
           print('$e');
           Utils.showToast(TypeToast.error, "Terjadi Kesalahan!, Silakan Coba Lagi");
-          isError = true;
           return;
         }
-      }
-      if (!isError) {
-        bottomSheetController = scaffoldKey.currentState!.showBottomSheet(
-          (context) {
-            body?.putIfAbsent("docID", () => docID);
-            return signInSheet(user: user, body: body);
-          },
-          backgroundColor: Colors.transparent,
-          enableDrag: false,
-        );
-        bottomSheetController?.closed.whenComplete(_reload);
+      } else {
+        Utils.showToast(TypeToast.error, "Wajah tidak terdaftar, silahkan coba lagi !");
       }
     }
   }
@@ -215,17 +225,8 @@ class _PresenceViewState extends State<PresenceView> {
       width: Get.width,
       padding: const EdgeInsets.all(16),
       child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              return Get.back();
-            },
-            child: SvgPicture.asset(
-              "assets/ic_back_button.svg",
-              color: const Color(AppColor.colorWhite),
-            ),
-          ),
-          const Expanded(
+        children: const [
+          Expanded(
             child: CustomText(
               "Presensi Masuk",
               fontSize: 16,
@@ -239,7 +240,7 @@ class _PresenceViewState extends State<PresenceView> {
     );
   }
 
-  Widget signInSheet({required User? user, Map<dynamic, dynamic>? body}) {
+  Widget signInSheet({required User? user, Map<String, dynamic>? body}) {
     if (user == null) {
       return PresenceBottomSheet(
         user: user,
