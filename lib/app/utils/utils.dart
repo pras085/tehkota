@@ -223,7 +223,7 @@ class Utils {
     switch (typeShift) {
       case TypeShift.shiftPagi:
         return {
-          "login_presence": customDate(0, 0),
+          "login_presence": customDate(6, 0),
           "logout_presence": customDate(15, 0),
         };
       case TypeShift.shiftSore:
@@ -244,13 +244,13 @@ class Utils {
     return DateFormat('HH.mm').format(dateTime);
   }
 
-  static String funcHourCalculateTotal(DateTime? jamMasuk, DateTime? jamKeluar, {DateTime? jamLembur}) {
+  static String funcHourCalculateTotal(DateTime? jamMasuk, DateTime? jamKeluar, {Duration? jamLembur}) {
     // Hitung selisih waktu antara jam masuk dan jam keluar
     if (jamMasuk == null || jamKeluar == null) return "";
     Duration selisihWaktu = jamKeluar.difference(jamMasuk);
     // Tambahkan waktu lembur jika ada
     if (jamLembur != null) {
-      selisihWaktu += jamLembur.difference(DateTime(0));
+      selisihWaktu += jamLembur;
     }
 
     // Hitung total jam dan menit dari selisih waktu

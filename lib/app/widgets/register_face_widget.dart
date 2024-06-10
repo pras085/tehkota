@@ -229,7 +229,6 @@ class AuthActionButtonState extends State<AuthActionButton> {
   final controller = Get.find<RegisterController>();
 
   final MLService _mlService = locator<MLService>();
-  final CameraService _cameraService = locator<CameraService>();
 
   final TextEditingController _userTextEditingController = TextEditingController(text: '');
 

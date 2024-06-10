@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_protected_member, unnecessary_cast
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
@@ -50,7 +52,7 @@ class HomeView extends GetView<HomeController> {
         controller: controller.refreshC,
         onRefresh: () async {
           await controller.getDataFromApi();
-          await Future.delayed(Duration(seconds: 1));
+          await Future.delayed(const Duration(seconds: 1));
           controller.refreshC.refreshCompleted();
         },
         child: SingleChildScrollView(
@@ -58,7 +60,7 @@ class HomeView extends GetView<HomeController> {
             horizontal: 16,
             vertical: 24,
           ),
-          child: Container(
+          child: SizedBox(
             width: Get.width,
             height: Get.height,
             child: Column(
@@ -112,7 +114,10 @@ class HomeView extends GetView<HomeController> {
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
               child: CustomText(
-                (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ? Utils.typeShiftToString(TypeShift.shiftPagi) : Utils.typeShiftToString(TypeShift.shiftSore),
+                // (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ? Utils.typeShiftToString(TypeShift.shiftPagi) : Utils.typeShiftToString(TypeShift.shiftSore),
+                (now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) || (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!))
+                    ? Utils.typeShiftToString(TypeShift.shiftPagi)
+                    : Utils.typeShiftToString(TypeShift.shiftSore),
                 color: const Color(AppColor.colorWhite),
                 fontWeight: FontWeight.w600,
               ),
@@ -122,7 +127,7 @@ class HomeView extends GetView<HomeController> {
         Utils.gapVertical(16),
         Row(
           children: [
-            if (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ...[
+            if ((now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) || now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ...[
               _cardShiftTodayWidget(
                 "Presensi Masuk",
                 Utils.typeShiftToString(TypeShift.shiftPagi),

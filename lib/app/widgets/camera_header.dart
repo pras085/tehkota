@@ -32,9 +32,9 @@ class CameraHeader extends StatelessWidget {
               child: const Center(child: Icon(Icons.arrow_back)),
             ),
           ),
-          Text(
+          const Text(
             "",
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 20),
             textAlign: TextAlign.center,
           ),
           const SizedBox(

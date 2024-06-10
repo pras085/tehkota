@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
-import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/camera_detection_preview.dart';
 import 'package:teh_kota/app/widgets/custom_fab_button.dart';
@@ -40,7 +38,7 @@ class _PresenceViewState extends State<PresenceView> {
   CloudFirestoreService firestore = CloudFirestoreService();
 
   PersistentBottomSheetController? bottomSheetController;
-
+  var presenceData = Rxn<Map<String, dynamic>>();
   @override
   void initState() {
     super.initState();
@@ -105,6 +103,7 @@ class _PresenceViewState extends State<PresenceView> {
     await takePicture();
     var docID = DateFormat("dd-MM-y").format(DateTime.now());
     if (_faceDetectorService.faceDetected) {
+      _isInitializing = true;
       User? user = await _mlService.predict();
       Map<String, dynamic>? body;
       if (user != null) {
@@ -126,11 +125,11 @@ class _PresenceViewState extends State<PresenceView> {
             if (!value.exists) {
               throw "ERROR resGetPresence";
             }
-            Map<String, dynamic> presenceData = value.data()?[user.userID];
-            if (presenceData.containsKey("login_presence") && presenceData.containsKey("logout_presence")) {
-              body?.putIfAbsent("login_presence", () => presenceData['login_presence']);
-              body?.putIfAbsent("logout_presence", () => presenceData['login_presence']);
-            } else if (!(presenceData.containsKey("login_presence"))) {
+            presenceData.value = value.data()?[user.userID];
+            if ((presenceData.value ?? {}).containsKey("login_presence") && (presenceData.value ?? {}).containsKey("logout_presence")) {
+              body?.putIfAbsent("login_presence", () => presenceData.value?['login_presence']);
+              body?.putIfAbsent("logout_presence", () => presenceData.value?['login_presence']);
+            } else if (!((presenceData.value ?? {}).containsKey("login_presence"))) {
               // buat baru (presensi masuk)
               var resLogin = await firestore.addPresence(
                 docID,
@@ -140,28 +139,33 @@ class _PresenceViewState extends State<PresenceView> {
               if (resLogin) {
                 body?.putIfAbsent("login_presence", () => DateTime.now().toLocal().toString());
               }
-            } else if (!(presenceData.containsKey("logout_presence"))) {
+            } else if (!((presenceData.value ?? {}).containsKey("logout_presence"))) {
               // (presensi keluar)
-              // TODO : dev lembur disini
-              // DateTime jamMasuk = presenceData["login_presence"];
-              // DateTime jamKeluar = presenceData["logout_presence"];
+              if ((presenceData.value ?? {}).containsKey("shift")) {
+                body?.putIfAbsent("shift", () => presenceData.value?["shift"]);
+              }
 
-              // if(presenceData['shift'] == "0"){ // shift Pagi
-              // if (condition) {
-              // ON PGORERESS
-              // }
-              // }
+              if (body?["shift"] == "0") {
+                if (DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) {
+                  var lemburTime = DateTime.now().difference(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!);
+                  print("lembur : ${lemburTime.inMinutes}");
+                  body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+                }
+              } else {
+                if (DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!)) {
+                  var lemburTime = DateTime.now().difference(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!);
+                  print("lembur : ${lemburTime.inMinutes}");
+                  body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+                }
+              }
               var resLogout = await firestore.addPresence(
                 docID,
                 {"logout_presence": DateTime.now().toLocal().toString()},
                 body?["userID"],
               );
               if (resLogout) {
-                if (presenceData.containsKey("shift")) {
-                  body?.putIfAbsent("shift", () => presenceData["shift"]);
-                }
-                if (presenceData.containsKey("status")) {
-                  body?.putIfAbsent("status", () => presenceData["status"]);
+                if ((presenceData.value ?? {}).containsKey("status")) {
+                  body?.putIfAbsent("status", () => presenceData.value?["status"]);
                 }
                 body?.putIfAbsent("logout_presence", () => DateTime.now().toLocal().toString());
               }
@@ -185,6 +189,7 @@ class _PresenceViewState extends State<PresenceView> {
           return;
         }
       } else {
+        _isInitializing = false;
         Utils.showToast(TypeToast.error, "Wajah tidak terdaftar, silahkan coba lagi !");
       }
     }
@@ -228,13 +233,13 @@ class _PresenceViewState extends State<PresenceView> {
         children: const [
           Expanded(
             child: CustomText(
-              "Presensi Masuk",
+              "Presensi",
               fontSize: 16,
               fontWeight: FontWeight.w600,
               textAlign: TextAlign.center,
               color: Colors.white,
             ),
-          )
+          ),
         ],
       ),
     );

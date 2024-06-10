@@ -150,7 +150,7 @@ class CardPresenceDetail extends StatelessWidget {
                                     ? Utils.funcHourCalculateTotal(
                                         DateTime.tryParse((listPresence["login_presence"]))!,
                                         DateTime.tryParse((listPresence["logout_presence"]))!,
-                                        jamLembur: listPresence["lembur"],
+                                        jamLembur: listPresence["lembur_time"] != null ? Duration(minutes: int.parse(listPresence["lembur_time"])) : null,
                                       )
                                     : "-",
                                 color: const Color(AppColor.colorBlackNormal),
@@ -178,7 +178,7 @@ class CardPresenceDetail extends StatelessWidget {
                               fontSize: 10,
                             ),
                             CustomText(
-                              listPresence["lembur"] != null ? "${Utils.convertHoursToMinute(listPresence["lembur"])} Menit" : "-",
+                              listPresence["lembur_time"] != null ? "${listPresence["lembur_time"]} Menit" : "-",
                               color: const Color(AppColor.colorGreen),
                               fontSize: 10,
                             ),

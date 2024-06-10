@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,25 +33,6 @@ class CloudFirestoreService {
     return db.collection('admin').doc('default').get();
   }
 
-  // get specific doc in  `presence` collection's documents
-  // Future<DocumentSnapshot>? getSpesificPresence(String docID) {
-  //   db.collection('presence').doc(docID).get().then((DocumentSnapshot documentSnapshot) {
-  //     if (documentSnapshot.exists) {
-  //       // Dokumen ditemukan
-  //       return documentSnapshot;
-  //       // var fieldValue = documentSnapshot['nama_field'];
-  //       // print('Nilai field: $fieldValue');
-  //     } else {
-  //       // print('Dokumen tidak ditemukan!');
-  //       return null;
-  //     }
-  //   }).catchError((error) {
-  //     print('Error getSpesificPresence: $error');
-  //     return null;
-  //   });
-  //   return null;
-  // }
-
   Future<bool> addPresence(String dateTimeNow, Map<String, dynamic> data, String userID) async {
     try {
       await db.collection('presence').doc(dateTimeNow).set({userID: data}, SetOptions(merge: true)); // Tunggu hingga proses selesai
@@ -58,6 +41,33 @@ class CloudFirestoreService {
     } catch (error) {
       print("Failed to addPresence : $error");
       return false;
+    }
+  }
+
+  // get specific doc in  `presence` collection's documents
+  Future<List<Map<String, dynamic>>?> getSpesificPresence(String docID) async {
+    try {
+      DocumentSnapshot documentSnapshot = await db.collection('presence').doc(docID).get();
+      List<Map<String, dynamic>> listPresence = [];
+
+      if (documentSnapshot.exists) {
+        // Menambahkan data dari documentSnapshot ke listPresence
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+
+        data.forEach((key, value) {
+          if (key.startsWith('EMP-')) {
+            listPresence.add(value as Map<String, dynamic>);
+          }
+        });
+
+        return listPresence;
+      } else {
+        // Dokumen tidak ditemukan
+        return null;
+      }
+    } catch (error) {
+      print('Error getSpesificPresence: $error');
+      return null;
     }
   }
 
@@ -77,9 +87,43 @@ class CloudFirestoreService {
         listPresence.add(docSnapshot.data() as Map<String, dynamic>);
       }
 
-      // print("LIST PRESENCE : $listPresence");
+      print("LIST PRESENCE : $listPresence");
     } catch (e) {
       print("Error fetching presence data: $e");
+    }
+    return listPresence;
+  }
+
+  // get all `presence` collection's documents by spesific month
+  Future<List<Map<String, dynamic>>?> getDataForMonth(int year, int month) async {
+    List<Map<String, dynamic>>? listPresence;
+
+    try {
+      // Membuat awalan nama dokumen untuk pencarian
+      String searchPattern = '${month.toString().padLeft(2, '0')}-$year';
+
+      // Membuat query untuk mencari dokumen dengan nama yang sesuai pola pencarian
+      // QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('presence').where(FieldPath.documentId, isEqualTo: searchPattern).get();
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('presence').get();
+      listPresence = [];
+      List<Map<String, dynamic>> filteredData = [];
+      for (var doc in querySnapshot.docs) {
+        String documentName = doc.id;
+        if (documentName.contains(searchPattern)) {
+          // Lakukan penyaringan data di sini
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+          data.forEach((key, value) {
+            if (key.startsWith('EMP')) {
+              filteredData.add(value);
+            }
+          });
+        }
+      }
+      listPresence.addAll(filteredData);
+      // log("LIST PRESENCE ${listPresence.length} : $listPresence");
+    } catch (e) {
+      print("Error fetching data: $e");
     }
     return listPresence;
   }

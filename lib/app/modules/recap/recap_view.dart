@@ -8,6 +8,9 @@ import 'package:teh_kota/app/widgets/custom_appbar.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
 
 import '../../utils/utils.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class RekapView extends GetView<RekapController> {
   const RekapView({super.key});
@@ -44,11 +47,19 @@ class RekapView extends GetView<RekapController> {
               ),
               if (Utils.isAdmin.value)
                 InkWell(
-                  onTap: () {
-                    // Get.toNamed(Routes.REKAP);
+                  onTap: () async {
+                    await Printing.layoutPdf(
+                      onLayout: (PdfPageFormat format) async {
+                        return pw.Document().save();
+                      },
+                    );
+
+                    // controller.generatePdf(PdfPageFormat.a4, Utils.formatTanggaLocal(controller.selectedMonth.value.toString(), format: "MMMM yyyy"));
                   },
                   child: const Icon(Icons.print),
                 )
+              else
+                const SizedBox()
             ],
           ),
         ),
@@ -61,34 +72,45 @@ class RekapView extends GetView<RekapController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  CustomText(
-                    Utils.formatTanggaLocal(DateTime.now().toString(), format: "MMMM yyyy"),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                      onTap: () {
-                        print("decrement");
-                      },
-                      child: SvgPicture.asset("assets/ic_back_button.svg")),
-                  Utils.gapHorizontal(12),
-                  GestureDetector(
-                      onTap: () {
-                        print("icnrements");
-                      },
-                      child: SvgPicture.asset("assets/ic_forward_button.svg")),
-                ],
-              ),
-              Expanded(
+              Obx(() => Row(
+                    children: [
+                      CustomText(
+                        Utils.formatTanggaLocal(controller.selectedMonth.value.toString(), format: "MMMM yyyy"),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                          onTap: () {
+                            // controller.selectedMonth.value?.subtract(const Duration(days: 30));
+                            if (controller.selectedMonth.value == null) return;
+                            controller.selectedMonth.value = DateTime(controller.selectedMonth.value!.year - (controller.selectedMonth.value!.month == 1 ? 1 : 0), (controller.selectedMonth.value!.month == 1 ? 12 : controller.selectedMonth.value!.month - 1), controller.selectedMonth.value!.day);
+                            print("${controller.selectedMonth.value?.month}");
+                            controller.getDataFromApi();
+                          },
+                          child: SvgPicture.asset("assets/ic_back_button.svg")),
+                      Utils.gapHorizontal(12),
+                      GestureDetector(
+                          onTap: () {
+                            // controller.selectedMonth.value?.add(const Duration(days: 30));
+                            if (controller.selectedMonth.value == null) return;
+                            controller.selectedMonth.value = DateTime(controller.selectedMonth.value!.year + (controller.selectedMonth.value!.month == 12 ? 1 : 0), (controller.selectedMonth.value!.month % 12) + 1, controller.selectedMonth.value!.day);
+                            print("${controller.selectedMonth.value?.month}");
+                            controller.getDataFromApi();
+                          },
+                          child: SvgPicture.asset("assets/ic_forward_button.svg")),
+                    ],
+                  )),
+              Obx(() {
+                return Expanded(
                   child: ListView.builder(
-                itemCount: controller.listDataPresence.length,
-                itemBuilder: (context, i) {
-                  return CardRecapDetail(controller.listDataPresence[i]);
-                },
-              ))
+                    itemCount: controller.listDataPresence.length,
+                    itemBuilder: (context, i) {
+                      return CardRecapDetail(controller.listDataPresence[i]);
+                    },
+                  ),
+                );
+              })
             ],
           ),
         ),

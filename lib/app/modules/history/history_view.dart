@@ -1,6 +1,4 @@
-import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -43,7 +41,7 @@ class HistoryView extends GetView<HistoryController> {
                       ),
                     ),
                   ),
-                CustomText(
+                const CustomText(
                   "Riwayat Presensi",
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -62,15 +60,14 @@ class HistoryView extends GetView<HistoryController> {
           );
         }),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          width: Get.width,
-          height: Get.height,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      body: SizedBox(
+        width: Get.width,
+        height: Get.height,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
                   const CustomText(
                     "Hari Ini",
@@ -79,13 +76,8 @@ class HistoryView extends GetView<HistoryController> {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () {
-                      showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(DateTime.now().month - 1),
-                        lastDate: DateTime(DateTime.now().month + 6),
-                      );
+                    onTap: () async {
+                      controller.selectDate(context);
                     },
                     child: const CustomText(
                       "Pilih Tanggal",
@@ -96,16 +88,40 @@ class HistoryView extends GetView<HistoryController> {
                   ),
                 ],
               ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: controller.listDataPresence.length,
-                  itemBuilder: (context, i) {
-                    return CardPresenceDetail(controller.listDataPresence[i]);
-                  },
-                ),
-              )
-            ],
-          ),
+            ),
+            Obx(() {
+              return Expanded(
+                child: (controller.listDataPresence.isEmpty)
+                    ? Container(
+                        width: Get.width,
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              "assets/ic_no_data.svg",
+                            ),
+                            const SizedBox(height: 12),
+                            const CustomText(
+                              "Tidak ada data",
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: controller.listDataPresence.length,
+                        itemBuilder: (context, i) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: CardPresenceDetail(controller.listDataPresence[i]),
+                          );
+                        },
+                      ),
+              );
+            })
+          ],
         ),
       ),
     );

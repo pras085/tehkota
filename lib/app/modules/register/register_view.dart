@@ -205,7 +205,7 @@ class RegisterView extends GetView<RegisterController> {
                     ),
                   ),
                 ),
-                Expanded(
+                const Expanded(
                   child: CustomText(
                     "Tambah Karyawan",
                     fontSize: 16,

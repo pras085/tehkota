@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
@@ -29,7 +28,7 @@ class PresenceBottomSheet extends StatefulWidget {
 class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
   CloudFirestoreService firestore = CloudFirestoreService();
   final selectedTab = RxnInt(); // Variabel untuk menyimpan id tombol yang terpilih
-  int? typePresence;
+  var typePresence = RxInt(1);
   var body = Rxn<Map<String, dynamic>>();
 
   @override
@@ -37,7 +36,7 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
     super.initState();
 
     setState(() {
-      typePresence = widget.typePresence;
+      typePresence.value = widget.typePresence;
       body.value = widget.listPresence;
       body.refresh();
       if (body.value?.containsKey("shift") ?? false) {
@@ -53,11 +52,10 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
       if (value.data()?.containsKey(body.value?["userID"]) ?? false) {
         Map<String, dynamic> dataPresenceSelected = value.data()?['${body.value?["userID"]}'];
         var typeShift = Utils.specifyTypeShift(selectedTab.value);
-        body.value = {
-          "shift": selectedTab.value.toString(),
-          "status": "",
-        };
-        if (typePresence == 1) {
+        body.value?.putIfAbsent("shift", () => selectedTab.value.toString());
+        body.value?.putIfAbsent("status", () => "");
+
+        if (typePresence.value == 1) {
           if (typeShift == TypeShift.shiftSore) {
             if (DateTime.parse(dataPresenceSelected["login_presence"]).isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
               body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false).toString();
@@ -74,12 +72,13 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
         }
         var resAdd = await firestore.addPresence(
           body.value?["docID"],
-          body.value ?? {},
+          body.value!,
           body.value?["userID"],
         );
         if (!resAdd) {
           throw "";
         }
+        body.refresh();
       }
     }).catchError((error) {
       print('Error getPresence: $error');
@@ -138,12 +137,12 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
             ),
           );
         } else if ((widget.listPresence!.containsKey("logout_presence"))) {
-          typePresence = 2; // pengecekan untuk menampilkan tampilan presensi keluar
+          typePresence.value = 2; // pengecekan untuk menampilkan tampilan presensi keluar
         }
       }
       return WillPopScope(
         onWillPop: () async {
-          if (typePresence == 2) {
+          if (typePresence.value == 2) {
             // tidak perlu pengecekan karena keluar tidak perlu isi shift
             Get.back();
             return Future.value(true);
@@ -152,15 +151,17 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
             Utils.showToast(TypeToast.error, "Pilih shift terlebih dahulu !");
             return Future.value(false);
           }
-          if (typePresence == 1) {
+          if (typePresence.value == 1) {
             return Future.value(true);
           }
           return Future.value(true);
         },
         child: Obx(() {
           return Container(
-            constraints: BoxConstraints(maxHeight: body.value == null || typePresence == 1 ? 450 : 330),
+            // constraints: BoxConstraints(maxHeight: body.value == null && typePresence.value == 1 ? 450 : 330),
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+            // margin: typePresence.value == 2 ? (selectedTab.value == null ? EdgeInsets.only(top: 550) : EdgeInsets.only(top: 350)) : EdgeInsets.only(top: 500),
+            margin: EdgeInsets.only(top: 400),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
@@ -173,7 +174,7 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                 SvgPicture.asset("assets/ic_berhasil.svg"),
                 Utils.gapVertical(16),
                 CustomText(
-                  "Presensi " "${typePresence == 1 ? "Masuk" : "Keluar"}" " Berhasil",
+                  "Presensi " "${typePresence.value == 1 ? "Masuk" : "Keluar"}" " Berhasil",
                   fontSize: 20,
                   color: const Color(AppColor.colorGreen),
                   fontWeight: FontWeight.w600,
@@ -207,7 +208,7 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                 Obx(() {
                   return Column(
                     children: [
-                      if (selectedTab.value == null && typePresence == 1)
+                      if (selectedTab.value == null && typePresence.value == 1)
                         Container(
                           width: Get.width,
                           decoration: BoxDecoration(
@@ -226,7 +227,7 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                               Obx(() => Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
-                                      if (DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
+                                      if (DateTime.now().hour > 2 || DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
                                         shiftButton(TypeShift.shiftSore),
                                         shiftButton(TypeShift.shiftFull),
                                       ] else ...[
@@ -240,7 +241,7 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                         )
                       else
                         const SizedBox(),
-                      if (selectedTab.value == null && typePresence == 1) Utils.gapVertical(16) else const SizedBox(),
+                      if (selectedTab.value == null && typePresence.value == 1) Utils.gapVertical(16) else const SizedBox(),
                     ],
                   );
                 }),
@@ -251,32 +252,32 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              CustomText(
-                                typePresence == 1 ? "Jam Masuk" : "Jam Keluar",
-                                color: const Color(AppColor.colorDarkGrey),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                              ),
-                              Utils.gapVertical(8),
-                              Obx(() {
-                                return CustomText(
-                                  (body.value?["login_presence"] != null && typePresence == 1)
-                                      ? (body.value?["logout_presence"] != null && typePresence == 2)
+                          Obx(() {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                CustomText(
+                                  typePresence.value == 1 ? "Jam Masuk" : "Jam Keluar",
+                                  color: const Color(AppColor.colorDarkGrey),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                Utils.gapVertical(8),
+                                CustomText(
+                                  (body.value?["login_presence"] != null && typePresence.value == 1)
+                                      ? Utils.formatTime(DateTime.tryParse(body.value?["login_presence"]))
+                                      : (body.value?["logout_presence"] != null && typePresence.value == 2)
                                           ? Utils.formatTime(DateTime.tryParse(body.value?["logout_presence"]))
-                                          : Utils.formatTime(DateTime.tryParse(body.value?["login_presence"]))
-                                      : "-",
+                                          : "-",
                                   color: const Color(AppColor.colorBlackNormal),
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   textAlign: TextAlign.center,
-                                );
-                              }),
-                            ],
-                          ),
+                                ),
+                              ],
+                            );
+                          }),
                           Container(
                             color: const Color(AppColor.colorLightGrey),
                             height: 43,
@@ -307,30 +308,26 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                             height: 43,
                             width: 1,
                           ),
-                          Column(
-                            children: [
-                              const CustomText(
-                                "Status",
-                                color: Color(AppColor.colorDarkGrey),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                              ),
-                              Utils.gapVertical(8),
-                              Obx(() {
-                                return CustomText(
-                                  (body.value != null && body.value!["status"] != null && typePresence == 1)
-                                      ? (typePresence == 2 && widget.listPresence != null && widget.listPresence!["status"] != null)
-                                          ? Utils.typeStatusToString(Utils.specifyTypeStatus(int.parse(widget.listPresence!["status"].toString())))
-                                          : Utils.typeStatusToString(Utils.specifyTypeStatus(int.parse(body.value!["status"].toString())))
-                                      : "-",
+                          Obx(() {
+                            return Column(
+                              children: [
+                                const CustomText(
+                                  "Status",
+                                  color: Color(AppColor.colorDarkGrey),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                Utils.gapVertical(8),
+                                CustomText(
+                                  (body.value != null && body.value!["status"] != null) ? Utils.typeStatusToString(Utils.specifyTypeStatus(int.parse(body.value!["status"].toString()))) : "-",
                                   color: const Color(AppColor.colorBlackNormal),
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   textAlign: TextAlign.center,
-                                );
-                              }),
-                            ],
-                          ),
+                                ),
+                              ],
+                            );
+                          }),
                         ],
                       ),
                     ],
@@ -357,9 +354,9 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
           SvgPicture.asset("assets/ic_gagal.svg"),
           Utils.gapVertical(16),
           CustomText(
-            "Presensi ${typePresence == 1 ? "Masuk" : "Berhasil"} Gagal",
+            "Presensi ${typePresence.value == 1 ? "Masuk" : "Berhasil"} Gagal",
             fontSize: 20,
-            color: Color(AppColor.colorRed),
+            color: const Color(AppColor.colorRed),
             fontWeight: FontWeight.w600,
           ),
           Utils.gapVertical(16),
