@@ -86,9 +86,10 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
         Utils.gapVertical(8),
         Container(
           width: Get.width,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(AppColor.colorLightGrey)), borderRadius: BorderRadius.circular(12)),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Expanded(
                 child: TextField(

@@ -223,7 +223,7 @@ class Utils {
     switch (typeShift) {
       case TypeShift.shiftPagi:
         return {
-          "login_presence": customDate(6, 0),
+          "login_presence": customDate(9, 0),
           "logout_presence": customDate(15, 0),
         };
       case TypeShift.shiftSore:
