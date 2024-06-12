@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:get/get.dart';
+import 'package:teh_kota/app/models/user.model.dart';
 import 'package:teh_kota/app/modules/register/register_controller.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
@@ -159,7 +160,119 @@ class RegisterView extends GetView<RegisterController> {
                               const Spacer(),
                               if (Utils.isAdmin.value)
                                 InkWell(
-                                  onTap: () {},
+                                  onTap: () {
+                                    showBottomSheet(
+                                      context: context,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) {
+                                        var selectedUser = documents?[index].data();
+                                        print("USER : $selectedUser");
+                                        return Container(
+                                          decoration: const BoxDecoration(
+                                            borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(12),
+                                              topRight: Radius.circular(12),
+                                            ),
+                                            color: Color(AppColor.colorWhite),
+                                          ),
+                                          constraints: BoxConstraints(minWidth: Get.width, maxHeight: 180),
+                                          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                                          child: Column(
+                                            children: [
+                                              InkWell(
+                                                onTap: () async {
+                                                  if (selectedUser == null) return;
+                                                  PersistentBottomSheetController bottomSheetController = Scaffold.of(context).showBottomSheet((context) {
+                                                    return signSheet(context, selectedUser);
+                                                  });
+                                                  bottomSheetController.closed.whenComplete(() {
+                                                    bottomSheetController.close();
+                                                  });
+
+                                                  // var res = await Utils.showAlertDialog(context, "Apakah anda yakin ingin menghapus user ${selectedUser?["name"]} ?");
+                                                  // if (res) {
+                                                  //   try {
+                                                  //     Get.back();
+                                                  //     await controller.dbHelper.deleteSelectedUser(selectedUser?["userID"]);
+                                                  //     await controller.firestore.deleteSelectedUser(selectedUser?["userID"]);
+                                                  //     Utils.showToast(TypeToast.success, "Berhasil mengaphapus data ${selectedUser?["name"]}");
+                                                  //   } catch (e) {
+                                                  //     Utils.showToast(TypeToast.error, "Gagal hapus user!");
+                                                  //     print('Error deleting collection: $e');
+                                                  //   }
+                                                  // }
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    color: const Color(AppColor.colorGreen),
+                                                    boxShadow: <BoxShadow>[
+                                                      BoxShadow(
+                                                        color: Colors.grey.withOpacity(0.1),
+                                                        blurRadius: 1,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  alignment: Alignment.center,
+                                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: const [
+                                                      Icon(Icons.edit, color: Colors.black),
+                                                      SizedBox(width: 10),
+                                                      Text('Edit User', style: TextStyle(color: Colors.black)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              Utils.gapVertical(24),
+                                              InkWell(
+                                                onTap: () async {
+                                                  var res = await Utils.showAlertDialog(context, "Apakah anda yakin ingin menghapus user ${selectedUser?["name"]} ?");
+                                                  if (res) {
+                                                    try {
+                                                      Get.back();
+                                                      await controller.dbHelper.deleteSelectedUser(selectedUser?["userID"]);
+                                                      await controller.firestore.deleteSelectedUser(selectedUser?["userID"]);
+                                                      await controller.firestore.deleteUserDataFromAllDocuments(selectedUser?["userID"]);
+                                                      Utils.showToast(TypeToast.success, "Berhasil mengaphapus data ${selectedUser?["name"]}");
+                                                    } catch (e) {
+                                                      Utils.showToast(TypeToast.error, "Gagal hapus user!");
+                                                      print('Error deleting collection: $e');
+                                                    }
+                                                  }
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    color: const Color(AppColor.colorLightGrey),
+                                                    boxShadow: <BoxShadow>[
+                                                      BoxShadow(
+                                                        color: Colors.grey.withOpacity(0.1),
+                                                        blurRadius: 1,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  alignment: Alignment.center,
+                                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: const [
+                                                      Icon(Icons.delete, color: Colors.black),
+                                                      SizedBox(width: 10),
+                                                      Text('Delete User', style: TextStyle(color: Colors.black)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
                                   child: const RotatedBox(
                                     quarterTurns: 45,
                                     child: Icon(Icons.more_vert),
@@ -221,50 +334,6 @@ class RegisterView extends GetView<RegisterController> {
           child: Column(
             children: [
               InkWell(
-                onTap: () async {
-                  var res = await Utils.showAlertDialog(context, "Apakah anda yakin ingin menghapus database ?");
-                  if (res) {
-                    try {
-                      await controller.dbHelper.deleteAll();
-                      await controller.firestore.deleteCollection('users');
-                      Utils.showToast(TypeToast.success, "Berhasil menghapus database!");
-                    } catch (e) {
-                      print('Error deleting collection: $e');
-                    }
-                  }
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: const Color(AppColor.colorLightGrey),
-                    boxShadow: <BoxShadow>[
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        blurRadius: 1,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        'Delete Database',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Icon(Icons.delete, color: Colors.black)
-                    ],
-                  ),
-                ),
-              ),
-              InkWell(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -305,6 +374,89 @@ class RegisterView extends GetView<RegisterController> {
           ),
         ),
       ],
+    );
+  }
+
+  signSheet(BuildContext context, Map<String, dynamic> selectedID) {
+    controller.userNameC.text = selectedID["name"].toString();
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            children: [
+              CustomTextFormField(
+                controller: controller.userNameC,
+                title: "Ubah user name anda",
+              ),
+              const SizedBox(height: 10),
+              const Divider(),
+              const SizedBox(height: 10),
+              _appButton(
+                text: 'Ubah',
+                onPressed: () async {
+                  print(selectedID);
+                  try {
+                    await controller.dbHelper.update(User(
+                      userID: selectedID["userID"].toString(),
+                      userName: controller.userNameC.text,
+                    ));
+                    var res = await controller.firestore.updateUsers(selectedID["userID"].toString(), controller.userNameC.text);
+                    Get.back();
+                    if (res) {
+                      Utils.showToast(TypeToast.success, "Berhasil update user");
+                    } else {
+                      Utils.showToast(TypeToast.error, "Terjadi kesalahan");
+                    }
+                  } catch (e) {
+                    Utils.showToast(TypeToast.error, "Terjadi kesalahan");
+                    printError(info: e.toString());
+                  }
+
+                  List<User> users = await controller.dbHelper.queryAllUsers();
+                  for (var i = 0; i < users.length; i++) {
+                    print(users[i].userName);
+                  }
+                },
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  _appButton({required String text, required VoidCallback onPressed}) {
+    return InkWell(
+      onTap: onPressed,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.black,
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.1),
+              blurRadius: 1,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        width: Get.width * 0.8,
+        height: 60,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              text,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -21,24 +21,25 @@ class MLService {
   Future initialize() async {
     late Delegate delegate;
     try {
-      if (Platform.isAndroid) {
-        delegate = GpuDelegateV2(
-          options: GpuDelegateOptionsV2(
-            isPrecisionLossAllowed: false,
-            inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
-            inferencePriority1: TfLiteGpuInferencePriority.maxPrecision,
-            inferencePriority2: TfLiteGpuInferencePriority.auto,
-            inferencePriority3: TfLiteGpuInferencePriority.auto,
-          ),
-        );
-      } else if (Platform.isIOS) {
-        delegate = GpuDelegate(
-          options: GpuDelegateOptions(allowPrecisionLoss: true, waitType: TFLGpuDelegateWaitType.active),
-        );
-      }
-      var interpreterOptions = InterpreterOptions()..addDelegate(delegate);
+      // if (Platform.isAndroid) {
+      //   delegate = XNNPackDelegate();
+      //   delegate = GpuDelegateV2(
+      //     options: GpuDelegateOptionsV2(
+      //       isPrecisionLossAllowed: false,
+      //       inferencePreference: TfLiteGpuInferenceUsage.fastSingleAnswer,
+      //       inferencePriority1: TfLiteGpuInferencePriority.maxPrecision,
+      //       inferencePriority2: TfLiteGpuInferencePriority.auto,
+      //       inferencePriority3: TfLiteGpuInferencePriority.auto,
+      //     ),
+      //   );
+      // } else if (Platform.isIOS) {
+      //   delegate = GpuDelegate(
+      //     options: GpuDelegateOptions(allowPrecisionLoss: true, waitType: TFLGpuDelegateWaitType.active),
+      //   );
+      // }
+      // var interpreterOptions = InterpreterOptions()..addDelegate(delegate);
 
-      _interpreter = await Interpreter.fromAsset('mobilefacenet.tflite', options: interpreterOptions);
+      _interpreter = await Interpreter.fromAsset('mobilefacenet.tflite');
     } catch (e) {
       print('Failed to load model.');
       print(e);

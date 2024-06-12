@@ -7,10 +7,8 @@ class HomeController extends GetxController {
   CloudFirestoreService firestore = CloudFirestoreService();
   RefreshController refreshC = RefreshController();
   var listDataPresence = <Map<String, dynamic>>[].obs;
-  PageController pageController = PageController(
-    initialPage: 0,
-    keepPage: true,
-  );
+  PageController pageController = PageController(initialPage: 0, keepPage: true);
+  var scrollC = ScrollController();
 
   @override
   void onInit() {

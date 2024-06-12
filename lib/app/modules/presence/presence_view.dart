@@ -114,7 +114,7 @@ class _PresenceViewState extends State<PresenceView> {
             "userID": user.userID,
             "userName": user.userName,
           };
-          var res = await firestore.addPresence(docID, body, user.userID);
+          var res = await firestore.addPresence(docID, body, user.userID ?? "");
           if (!res) {
             // jika terjadi error
             throw "ERROR addPresence";

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
 
@@ -21,6 +22,7 @@ class RegisterController extends GetxController {
   var loading = false.obs;
   DatabaseHelper dbHelper = DatabaseHelper.instance;
   CloudFirestoreService firestore = CloudFirestoreService();
+  var userNameC = TextEditingController();
 
   @override
   void onInit() async {

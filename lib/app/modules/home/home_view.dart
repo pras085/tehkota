@@ -56,6 +56,8 @@ class HomeView extends GetView<HomeController> {
           controller.refreshC.refreshCompleted();
         },
         child: SingleChildScrollView(
+          controller: controller.scrollC,
+          physics: NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 24,
@@ -255,8 +257,8 @@ class HomeView extends GetView<HomeController> {
             return Expanded(
               child: ListView.builder(
                 shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
                 itemCount: controller.listDataPresence.value.length,
+                controller: controller.scrollC,
                 itemBuilder: (context, i) {
                   return CardPresenceDetail(controller.listDataPresence.value[i]);
                 },

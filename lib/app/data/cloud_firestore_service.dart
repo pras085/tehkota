@@ -44,6 +44,16 @@ class CloudFirestoreService {
     }
   }
 
+  Future<bool> updateUsers(String usersID, String name) async {
+    try {
+      await db.collection('users').doc(usersID).set({"name": name}, SetOptions(merge: true)); // Tunggu hingga proses selesai
+      return true;
+    } catch (error) {
+      print("Failed to addPresence : $error");
+      return false;
+    }
+  }
+
   // get specific doc in  `presence` collection's documents
   Future<List<Map<String, dynamic>>?> getSpesificPresence(String docID) async {
     try {
@@ -138,6 +148,45 @@ class CloudFirestoreService {
     // Delete each document in the collection
     for (DocumentSnapshot docSnapshot in querySnapshot.docs) {
       await docSnapshot.reference.delete();
+    }
+  }
+
+  Future<void> deleteSelectedUser(String userID) async {
+    try {
+      // Membuat query untuk mendapatkan dokumen dengan userID yang sesuai
+      QuerySnapshot querySnapshot = await db.collection('users').where('userID', isEqualTo: userID).get();
+
+      // Jika ada dokumen yang sesuai dengan userID
+      if (querySnapshot.docs.isNotEmpty) {
+        // Hapus dokumen tersebut
+        await querySnapshot.docs.first.reference.delete();
+        print('User with userID $userID deleted successfully');
+      } else {
+        // Jika tidak ada dokumen yang sesuai dengan userID
+        print('User with userID $userID not found');
+      }
+    } catch (error) {
+      print("Failed to delete user: $error");
+    }
+  }
+
+  Future<void> deleteUserDataFromAllDocuments(String userIDToRemove) async {
+    try {
+      // Query untuk mendapatkan semua dokumen presensi
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('presence').get();
+
+      // Iterasi semua dokumen
+      for (var doc in querySnapshot.docs) {
+        // Ambil data dari dokumen
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+        data.remove(userIDToRemove); // Menghapus langsung dengan key
+
+        // Perbarui dokumen di Firestore
+        await doc.reference.set(data); // Set data kembali ke dokumen
+      }
+    } catch (e) {
+      print("Error deleting user data from all documents: $e");
     }
   }
 }

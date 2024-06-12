@@ -45,6 +45,11 @@ class DatabaseHelper {
     return await db.insert(table, user.toMap());
   }
 
+  Future<int> update(User user) async {
+    Database db = await instance.database;
+    return await db.update(table, user.toMap(), where: '$columnId = ?', whereArgs: [user.userName]);
+  }
+
   Future<List<User>> queryAllUsers() async {
     Database db = await instance.database;
     List<Map<String, dynamic>> users = await db.query(table);
@@ -54,5 +59,16 @@ class DatabaseHelper {
   Future<int> deleteAll() async {
     Database db = await instance.database;
     return await db.delete(table);
+  }
+
+  Future<int> deleteSelectedUser(String userID) async {
+    try {
+      Database db = await instance.database;
+      return await db.delete(table, where: '$columnId = ?', whereArgs: [userID]);
+    } catch (e) {
+      // Tangani kesalahan jika terjadi
+      print("Error while deleting user: $e");
+      return 0; // atau kembalikan nilai lain sesuai kebutuhan aplikasi Anda
+    }
   }
 }

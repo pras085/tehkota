@@ -6,18 +6,24 @@ import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
 
 class CardRecapDetail extends StatelessWidget {
-  final Map listPresence;
+  final Map listDataPresence;
+  final bool isAdmin;
+  final VoidCallback? onTap;
 
-  const CardRecapDetail(this.listPresence, {super.key});
+  const CardRecapDetail(
+    this.listDataPresence, {
+    super.key,
+    this.isAdmin = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    var gajiHadir = int.parse(listPresence["totalPresence"].toString()) * 40;
-    var gajiTerpotong = int.parse(listPresence["totalLate"].toString()) * 10;
-    var gajiLembur = int.parse(listPresence["totalOvertime"].toString()) * 20;
+    var gajiHadir = int.parse(listDataPresence["totalPresence"].toString()) * 40;
+    var gajiTerpotong = int.parse(listDataPresence["totalLate"].toString()) * 10;
+    var gajiLembur = int.parse(listDataPresence["totalOvertime"].toString()) * 20;
     var gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;
     return Container(
-      margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(12),
       width: Get.width,
       decoration: const BoxDecoration(
@@ -34,12 +40,15 @@ class CardRecapDetail extends StatelessWidget {
                 width: 24,
               ),
               Utils.gapHorizontal(6),
-              Expanded(
-                child: CustomText(
-                  listPresence["userName"].toString(),
-                  fontSize: 12,
-                ),
+              CustomText(
+                listDataPresence["userName"].toString(),
+                fontSize: 12,
               ),
+              const Spacer(),
+              InkWell(
+                onTap: onTap,
+                child: const Icon(Icons.print),
+              )
             ],
           ),
           Container(
@@ -63,7 +72,7 @@ class CardRecapDetail extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             CustomText(
-                              "${listPresence["totalPresence"]} Hadir",
+                              "${listDataPresence["totalPresence"]} Hadir",
                               color: const Color(AppColor.colorGreen),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -84,7 +93,7 @@ class CardRecapDetail extends StatelessWidget {
                         Column(
                           children: [
                             CustomText(
-                              '${listPresence["totalLate"]} Jam',
+                              '${listDataPresence["totalLate"]} Jam',
                               color: const Color(AppColor.colorRed),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -105,7 +114,7 @@ class CardRecapDetail extends StatelessWidget {
                         Column(
                           children: [
                             CustomText(
-                              "${listPresence["totalOvertime"]} Jam",
+                              "${listDataPresence["totalOvertime"]} Jam",
                               color: const Color(AppColor.colorBlue),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

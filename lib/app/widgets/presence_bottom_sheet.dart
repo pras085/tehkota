@@ -227,13 +227,16 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                               Obx(() => Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
-                                      if (DateTime.now().hour > 2 || DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
+                                      // if (DateTime.now().hour > 2 || DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
+                                      //   shiftButton(TypeShift.shiftSore),
+                                      //   shiftButton(TypeShift.shiftFull),
+                                      // ] else ...[
+                                      //   shiftButton(TypeShift.shiftPagi),
+                                      //   shiftButton(TypeShift.shiftFull),
+                                      // ]
+                                        shiftButton(TypeShift.shiftPagi),
                                         shiftButton(TypeShift.shiftSore),
                                         shiftButton(TypeShift.shiftFull),
-                                      ] else ...[
-                                        shiftButton(TypeShift.shiftPagi),
-                                        shiftButton(TypeShift.shiftFull),
-                                      ]
                                     ],
                                   )),
                             ],

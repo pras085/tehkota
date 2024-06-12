@@ -9,6 +9,7 @@ import 'package:teh_kota/app/db/databse_helper.dart';
 import 'package:teh_kota/app/models/user.model.dart';
 import 'package:teh_kota/app/modules/register/register_controller.dart';
 import 'package:teh_kota/app/utils/utils.dart';
+import 'package:teh_kota/app/widgets/custom_fab_button.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
 
 import '../locator.dart';
@@ -283,39 +284,40 @@ class AuthActionButtonState extends State<AuthActionButton> {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: Colors.blue[200],
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.blue.withOpacity(0.1),
-              blurRadius: 1,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        width: MediaQuery.of(context).size.width * 0.8,
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
-              'CAPTURE',
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Icon(Icons.camera_alt, color: Colors.white)
-          ],
-        ),
-      ),
-    );
+    return CustomFabButton(onTap: onTap);
+    // InkWell(
+    //   onTap: onTap,
+    //   child: Container(
+    //     decoration: BoxDecoration(
+    //       borderRadius: BorderRadius.circular(10),
+    //       color: Colors.blue[200],
+    //       boxShadow: <BoxShadow>[
+    //         BoxShadow(
+    //           color: Colors.blue.withOpacity(0.1),
+    //           blurRadius: 1,
+    //           offset: const Offset(0, 2),
+    //         ),
+    //       ],
+    //     ),
+    //     alignment: Alignment.center,
+    //     padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+    //     width: MediaQuery.of(context).size.width * 0.8,
+    //     height: 60,
+    //     child: Row(
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: const [
+    //         Text(
+    //           'CAPTURE',
+    //           style: TextStyle(color: Colors.white),
+    //         ),
+    //         SizedBox(
+    //           width: 10,
+    //         ),
+    //         Icon(Icons.camera_alt, color: Colors.white)
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 
   signSheet(BuildContext context) {
@@ -414,7 +416,7 @@ class AuthActionButtonState extends State<AuthActionButton> {
             const SizedBox(
               width: 10,
             ),
-            const Icon(Icons.camera_alt, color: Colors.white)
+            icon
           ],
         ),
       ),

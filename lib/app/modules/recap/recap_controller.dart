@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
@@ -11,6 +13,7 @@ class RekapController extends GetxController {
   var selectedMonth = Rxn<DateTime>();
   CloudFirestoreService firestore = CloudFirestoreService();
   RefreshController refreshC = RefreshController();
+  var scrollC = ScrollController();
 
   var listDataPresence = <Map<String, dynamic>>[].obs;
 
@@ -36,6 +39,8 @@ class RekapController extends GetxController {
     if (selectedMonth.value == null) return;
     List<Map<String, dynamic>>? resp = await firestore.getDataForMonth(selectedMonth.value!.year, selectedMonth.value!.month);
     if (resp != null && resp.isNotEmpty) {
+      log("LIST : $resp");
+
       processData(resp);
     }
   } // Panggil fungsi summarizeData dengan daftar data presensi Anda
@@ -55,7 +60,7 @@ class RekapController extends GetxController {
         });
       });
       listDataPresence.refresh();
-      print("LIST : $listDataPresence");
+      // print("LIST : $listDataPresence");
     } else {
       print('Tidak ada data presensi.');
     }
@@ -97,18 +102,5 @@ class RekapController extends GetxController {
     }
 
     return summary;
-  }
-
-  Future<Uint8List> generatePdf(PdfPageFormat format, String title) async {
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: format,
-        build: (context) => pw.Placeholder(),
-      ),
-    );
-
-    return pdf.save();
   }
 }
