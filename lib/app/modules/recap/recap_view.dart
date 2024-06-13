@@ -178,7 +178,7 @@ class RekapView extends GetView<RekapController> {
                                                           mainAxisAlignment: pw.MainAxisAlignment.start,
                                                           children: [
                                                             pw.Text(
-                                                              "${controller.listDataPresence[i]["totalPresence"]} Hadir",
+                                                              "${controller.listDataPresence[i]["totalPresence"]} Jam",
                                                               style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: const pdf.PdfColor.fromInt(AppColor.colorGreen)),
                                                               textAlign: pw.TextAlign.center,
                                                             ),

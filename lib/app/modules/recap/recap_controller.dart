@@ -40,10 +40,10 @@ class RekapController extends GetxController {
     List<Map<String, dynamic>>? resp = await firestore.getDataForMonth(selectedMonth.value!.year, selectedMonth.value!.month);
     if (resp != null && resp.isNotEmpty) {
       log("LIST : $resp");
-
       processData(resp);
     }
-  } // Panggil fungsi summarizeData dengan daftar data presensi Anda
+  }
+  // Panggil fungsi summarizeData dengan daftar data presensi Anda
 
   Future<void> processData(List<Map<String, dynamic>> data) async {
     Map<String, Map<String, dynamic>>? summary = await summarizeData(data);
@@ -86,13 +86,17 @@ class RekapController extends GetxController {
       }
 
       // Menghitung jumlah presensi
-      if (entry.containsKey("logout_presence")) {
-        summary[userID]?['totalPresence']++;
+      if (entry.containsKey("logout_presence") && entry.containsKey("login_presence")) {
+        DateTime logoutPresence = DateTime.parse(entry["logout_presence"]);
+        DateTime loginPresence = DateTime.parse(entry["login_presence"]);
+        Duration difference = logoutPresence.difference(loginPresence);
+        summary[userID]?['totalPresence'] += difference.inHours;
       }
 
-      // Menghitung keterlambatan (contoh: jika login_presence melebihi waktu tertentu)
-      if (entry.containsKey('status') && entry['status'].toString() == "2") {
-        summary[userID]?['totalLate']++;
+      // Mengakumulasi jumlah terlambat_time
+      if (entry.containsKey('terlambat_time')) {
+        int terlambatTime = int.parse(entry['terlambat_time']);
+        summary[userID]?['totalLate'] = (summary[userID]?['totalLate'] ?? 0) + terlambatTime;
       }
 
       // Menghitung lembur (jika ada)

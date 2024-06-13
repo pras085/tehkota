@@ -57,14 +57,20 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
 
         if (typePresence.value == 1) {
           if (typeShift == TypeShift.shiftSore) {
-            if (DateTime.parse(dataPresenceSelected["login_presence"]).isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
+            if (DateTime.parse(dataPresenceSelected["login_presence"]).add(const Duration(minutes: 30)).isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
               body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false).toString();
+              body.value?.putIfAbsent("terlambat_time", () {
+                return DateTime.parse(dataPresenceSelected["login_presence"]).difference(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!).inMinutes.toString();
+              });
             } else {
               body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false).toString();
             }
           } else {
-            if (DateTime.parse(dataPresenceSelected["login_presence"]).isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) {
+            if (DateTime.parse(dataPresenceSelected["login_presence"]).add(const Duration(minutes: 30)).isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) {
               body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false).toString();
+              body.value?.putIfAbsent("terlambat_time", () {
+                return DateTime.parse(dataPresenceSelected["login_presence"]).difference(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!).inMinutes.toString();
+              });
             } else {
               body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false).toString();
             }
@@ -234,9 +240,9 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                                       //   shiftButton(TypeShift.shiftPagi),
                                       //   shiftButton(TypeShift.shiftFull),
                                       // ]
-                                        shiftButton(TypeShift.shiftPagi),
-                                        shiftButton(TypeShift.shiftSore),
-                                        shiftButton(TypeShift.shiftFull),
+                                      shiftButton(TypeShift.shiftPagi),
+                                      shiftButton(TypeShift.shiftSore),
+                                      shiftButton(TypeShift.shiftFull),
                                     ],
                                   )),
                             ],

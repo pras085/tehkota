@@ -19,10 +19,33 @@ class CardRecapDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var gajiHadir = int.parse(listDataPresence["totalPresence"].toString()) * 40;
-    var gajiTerpotong = int.parse(listDataPresence["totalLate"].toString()) * 10;
-    var gajiLembur = int.parse(listDataPresence["totalOvertime"].toString()) * 20;
-    var gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;
+    // Menghitung totalPresence dalam jam
+    double totalPresenceInHours = listDataPresence["totalPresence"].toDouble();
+
+    // Menghitung gaji berdasarkan aturan yang diberikan
+    double gajiPerJam = 6600;
+    double gajiHadir = 0;
+    if (totalPresenceInHours >= 12) {
+      gajiHadir = 80000;
+    } else if (totalPresenceInHours >= 6) {
+      gajiHadir = 40000;
+    } else {
+      gajiHadir = totalPresenceInHours * gajiPerJam;
+    }
+
+    // Menghitung potongan jika terlambat per 30 menit
+    double gajiTerpotong = 0;
+    if (listDataPresence["totalLate"] != 0) {
+      int terlambatTime = listDataPresence["totalLate"]; // Kita anggap terlambatTime sudah dalam menit
+      gajiTerpotong = (terlambatTime / 30).ceil() * 3300;
+    }
+
+    // Menghitung gaji lembur
+    int gajiLembur = listDataPresence["totalOvertime"] * 20;
+
+    // Menghitung gaji total
+    double gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;
+
     return Container(
       padding: const EdgeInsets.all(12),
       width: Get.width,
@@ -72,7 +95,7 @@ class CardRecapDetail extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             CustomText(
-                              "${listDataPresence["totalPresence"]} Hadir",
+                              "${listDataPresence["totalPresence"]} Jam",
                               color: const Color(AppColor.colorGreen),
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -149,7 +172,7 @@ class CardRecapDetail extends StatelessWidget {
                 ),
                 const Spacer(),
                 CustomText(
-                  gajiHadir != 0 ? "Rp. $gajiHadir" ".000" : "-",
+                  gajiHadir != 0 ? "Rp. ${gajiHadir.toStringAsFixed(0)}" : "-",
                   fontSize: 12,
                 )
               ],
@@ -163,7 +186,7 @@ class CardRecapDetail extends StatelessWidget {
                 ),
                 const Spacer(),
                 CustomText(
-                  gajiLembur != 0 ? "Rp. $gajiLembur" ".000" : "-",
+                  gajiLembur != 0 ? "Rp. ${gajiLembur.toStringAsFixed(0)}" : "-",
                   fontSize: 12,
                 )
               ],
@@ -178,7 +201,7 @@ class CardRecapDetail extends StatelessWidget {
                 ),
                 const Spacer(),
                 CustomText(
-                  gajiTerpotong != 0 ? "Rp. $gajiTerpotong" ".000" : "-",
+                  gajiTerpotong != 0 ? "Rp. ${gajiTerpotong.toStringAsFixed(0)}" : "-",
                   fontSize: 12,
                   color: const Color(AppColor.colorRed),
                 )
@@ -198,7 +221,7 @@ class CardRecapDetail extends StatelessWidget {
                 ),
                 const Spacer(),
                 CustomText(
-                  gajiTotal != 0 ? "Rp. $gajiTotal" ".000" : "-",
+                  gajiTotal != 0 ? "Rp. ${gajiTotal.toStringAsFixed(0)}" : "-",
                   fontSize: 12,
                   color: const Color(AppColor.colorGreen),
                 )
