@@ -93,10 +93,11 @@ class RekapController extends GetxController {
         summary[userID]?['totalPresence'] += difference.inHours;
       }
 
-      // Mengakumulasi jumlah terlambat_time
+      // Mengakumulasi jumlah terlambat_time dalam jam
       if (entry.containsKey('terlambat_time')) {
-        int terlambatTime = int.parse(entry['terlambat_time']);
-        summary[userID]?['totalLate'] = (summary[userID]?['totalLate'] ?? 0) + terlambatTime;
+        int terlambatTimeInMinutes = int.parse(entry['terlambat_time']);
+        int terlambatTimeInHours = terlambatTimeInMinutes ~/ 60; // konversi ke jam sebagai int
+        summary[userID]?['totalLate'] = (summary[userID]?['totalLate'] ?? 0) + terlambatTimeInHours; // Pastikan menggunakan 0 untuk int
       }
 
       // Menghitung lembur (jika ada)

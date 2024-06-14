@@ -1,4 +1,3 @@
-
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
@@ -27,6 +26,7 @@ class ProfileController extends GetxController {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('isLoggedIn', false);
     Utils.isAdmin.value = false;
+    Utils.isLoggedIn.value = false;
     Get.offAll(() => const PageViewUserController());
   }
 }
