@@ -11,7 +11,6 @@ import '../../utils/utils.dart';
 import 'package:pdf/pdf.dart' as pdf;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:flutter/services.dart';
 
 class RekapView extends GetView<RekapController> {
   const RekapView({super.key});

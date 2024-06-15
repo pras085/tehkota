@@ -167,7 +167,7 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
             // constraints: BoxConstraints(maxHeight: body.value == null && typePresence.value == 1 ? 450 : 330),
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
             // margin: typePresence.value == 2 ? (selectedTab.value == null ? EdgeInsets.only(top: 550) : EdgeInsets.only(top: 350)) : EdgeInsets.only(top: 500),
-            margin: EdgeInsets.only(top: 400),
+            margin: const EdgeInsets.only(top: 400),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(

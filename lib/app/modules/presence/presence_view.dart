@@ -90,9 +90,6 @@ class _PresenceViewState extends State<PresenceView> {
     }
   }
 
-  _onBackPressed() {
-    Navigator.of(context).pop();
-  }
 
   _reload() {
     if (mounted) setState(() => _isPictureTaken = false);

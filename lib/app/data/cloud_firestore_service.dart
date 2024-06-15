@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
@@ -48,7 +47,6 @@ class CloudFirestoreService {
   Future<bool> updateUsers(String usersID, String name) async {
     try {
       await db.collection('users').doc(usersID).set({"name": name}, SetOptions(merge: true)); // Tunggu hingga proses selesai
-      // await db.collection('presence').doc() // TODO
       return true;
     } catch (error) {
       print("Failed to addPresence : $error");

@@ -57,7 +57,7 @@ class HomeView extends GetView<HomeController> {
         },
         child: SingleChildScrollView(
           controller: controller.scrollC,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 24,

@@ -1,13 +1,8 @@
-import 'dart:developer';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 class RekapController extends GetxController {
   var selectedMonth = Rxn<DateTime>();
