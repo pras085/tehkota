@@ -90,7 +90,6 @@ class _PresenceViewState extends State<PresenceView> {
     }
   }
 
-
   _reload() {
     if (mounted) setState(() => _isPictureTaken = false);
     _start();
@@ -144,21 +143,22 @@ class _PresenceViewState extends State<PresenceView> {
               }
               // hitung lembur
               Duration lemburTime = const Duration();
+              var now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute);
               if (body?["shift"] == "0") {
-                if (DateTime.now().isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) {
-                  lemburTime = lemburTime + DateTime.now().difference(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!);
+                if (now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) {
+                  lemburTime = lemburTime + now.difference(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!);
                 }
-                if (DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) {
-                  lemburTime = lemburTime + DateTime.now().difference(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!);
+                if (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) {
+                  lemburTime = lemburTime + now.difference(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!);
                 }
                 print("lembur : ${lemburTime.inMinutes}");
                 body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
               } else {
-                if (DateTime.now().isBefore(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
-                  lemburTime = DateTime.now().difference(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!);
+                if (now.isBefore(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
+                  lemburTime = now.difference(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!);
                 }
-                if (DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!)) {
-                  lemburTime = lemburTime + DateTime.now().difference(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!);
+                if (now.isAfter(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!)) {
+                  lemburTime = lemburTime + now.difference(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!);
                 }
                 print("lembur : ${lemburTime.inMinutes}");
                 body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
@@ -172,7 +172,6 @@ class _PresenceViewState extends State<PresenceView> {
                 if ((presenceData.value ?? {}).containsKey("status")) {
                   body?.putIfAbsent("status", () => presenceData.value?["status"]);
                 }
-                body?.putIfAbsent("logout_presence", () => DateTime.now().toLocal().toString());
               }
             }
           }).catchError((error) {
