@@ -141,6 +141,7 @@ class _PresenceViewState extends State<PresenceView> {
               }
             } else if (!((presenceData.value ?? {}).containsKey("logout_presence"))) {
               // (presensi keluar)
+              body?.putIfAbsent("logout_presence", () => DateTime.now().toLocal().toString());
               if ((presenceData.value ?? {}).containsKey("shift")) {
                 body?.putIfAbsent("shift", () => presenceData.value?["shift"]);
               }
@@ -167,7 +168,7 @@ class _PresenceViewState extends State<PresenceView> {
               }
               var resLogout = await firestore.addPresence(
                 docID,
-                {"logout_presence": DateTime.now().toLocal().toString()},
+                body,
                 body?["userID"],
               );
               if (resLogout) {

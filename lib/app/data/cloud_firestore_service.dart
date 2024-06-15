@@ -33,7 +33,8 @@ class CloudFirestoreService {
     return db.collection('admin').doc('default').get();
   }
 
-  Future<bool> addPresence(String dateTimeNow, Map<String, dynamic> data, String userID) async {
+  Future<bool> addPresence(String dateTimeNow, Map<String, dynamic>? data, String userID) async {
+    if (data == null) return false;
     try {
       await db.collection('presence').doc(dateTimeNow).set({userID: data}, SetOptions(merge: true)); // Tunggu hingga proses selesai
       // print('Added Presence for $userID = $data');
@@ -47,6 +48,7 @@ class CloudFirestoreService {
   Future<bool> updateUsers(String usersID, String name) async {
     try {
       await db.collection('users').doc(usersID).set({"name": name}, SetOptions(merge: true)); // Tunggu hingga proses selesai
+      // await db.collection('presence').doc() // TODO
       return true;
     } catch (error) {
       print("Failed to addPresence : $error");
@@ -92,12 +94,36 @@ class CloudFirestoreService {
     try {
       QuerySnapshot querySnapshot = await db.collection('presence').get();
       listPresence = [];
+      // querySnapshot.docs.forEach((doc) {
+      //   print('Document ID: ${doc.id}');
+      //   print('Data: ${doc.data()}');
+      //   print('-------------------');
+      // });
 
-      for (DocumentSnapshot docSnapshot in querySnapshot.docs) {
-        listPresence.add(docSnapshot.data() as Map<String, dynamic>);
+      if (querySnapshot.docs.isNotEmpty) {
+        // Iterasi melalui setiap dokumen
+        for (var doc in querySnapshot.docs) {
+          // Iterasi melalui setiap user di dalam dokumen
+          Map<String, dynamic> docData = doc.data() as Map<String, dynamic>;
+
+          docData.forEach((key, value) {
+            // Ambil data dari Map<Map> dan tambahkan field docID
+            Map<String, dynamic> presenceData = {
+              ...value,
+            };
+            listPresence?.add(presenceData);
+          });
+        }
+
+        // Sorting berdasarkan login_presence descending (terbaru ke terlama)
+        listPresence.sort((a, b) {
+          var loginPresenceA = DateTime.parse(a['login_presence']);
+          var loginPresenceB = DateTime.parse(b['login_presence']);
+          return loginPresenceB.compareTo(loginPresenceA);
+        });
       }
 
-      print("LIST PRESENCE : $listPresence");
+      // print("LIST PRESENCE : $listPresence");
     } catch (e) {
       print("Error fetching presence data: $e");
     }
@@ -187,6 +213,35 @@ class CloudFirestoreService {
       }
     } catch (e) {
       print("Error deleting user data from all documents: $e");
+    }
+  }
+
+  Future<void> updateFieldInPresenceCollection(String userID, String newValue) async {
+    try {
+      // Ambil semua dokumen dari koleksi 'presence'
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('presence').get();
+
+      // Iterasi melalui setiap dokumen
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        // Ambil data dari dokumen
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        // print(data);
+        // Cek jika dokumen memiliki field 'userID'
+        if (data.containsKey(userID)) {
+          // Update fieldName di dalam data jika userID sesuai
+          // Ganti dengan userID yang sesuai
+          data[userID]["userName"] = newValue;
+
+          // Update dokumen di Firestore
+          await doc.reference.update(data);
+
+          print('User $newValue updated in document with ID ${doc.id}');
+        }
+      }
+
+      print('Update selesai.');
+    } catch (e) {
+      print('Error updating field: $e');
     }
   }
 }

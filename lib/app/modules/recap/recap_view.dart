@@ -25,7 +25,6 @@ class RekapView extends GetView<RekapController> {
         customBody: SizedBox(
           width: Get.width,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               if (!Utils.isAdmin.value)
                 InkWell(
@@ -41,10 +40,15 @@ class RekapView extends GetView<RekapController> {
                     ),
                   ),
                 ),
-              const CustomText(
-                "Rekap Presensi",
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              Expanded(
+                child: Align(
+                  alignment: (!Utils.isAdmin.value) ? Alignment.center : Alignment.centerLeft,
+                  child: const CustomText(
+                    "Rekap Presensi",
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -75,7 +79,7 @@ class RekapView extends GetView<RekapController> {
                   fontWeight: FontWeight.w600,
                 ),
                 const Spacer(),
-                GestureDetector( 
+                GestureDetector(
                     onTap: () {
                       // controller.selectedMonth.value?.subtract(const Duration(days: 30));
                       if (controller.selectedMonth.value == null) return;
@@ -100,7 +104,7 @@ class RekapView extends GetView<RekapController> {
           Obx(() {
             return Expanded(
               child: Padding(
-                padding: EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(top: 8.0),
                 child: ListView.builder(
                   itemCount: controller.listDataPresence.length,
                   controller: controller.scrollC,
@@ -115,10 +119,32 @@ class RekapView extends GetView<RekapController> {
                           final pdfDoc = pw.Document();
                           pdfDoc.addPage(pw.Page(
                             build: (context) {
-                              var gajiHadir = int.parse(controller.listDataPresence[i]["totalPresence"].toString()) * 40;
-                              var gajiTerpotong = int.parse(controller.listDataPresence[i]["totalLate"].toString()) * 10;
-                              var gajiLembur = int.parse(controller.listDataPresence[i]["totalOvertime"].toString()) * 20;
-                              var gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;
+                              double totalPresenceInHours = controller.listDataPresence[i]["totalPresence"].toDouble();
+
+                              // Menghitung gaji berdasarkan aturan yang diberikan
+                              double gajiPerJam = 6600;
+                              double gajiHadir = 0;
+                              if (totalPresenceInHours >= 12) {
+                                gajiHadir = 80000;
+                              } else if (totalPresenceInHours >= 6) {
+                                gajiHadir = 40000;
+                              } else {
+                                gajiHadir = totalPresenceInHours * gajiPerJam;
+                              }
+
+                              // Menghitung potongan jika terlambat per 30 menit
+                              double gajiTerpotong = 0;
+                              if (controller.listDataPresence[i]["totalLate"] != 0) {
+                                int terlambatTime = controller.listDataPresence[i]["totalLate"]; // Kita anggap terlambatTime sudah dalam menit
+                                gajiTerpotong = (terlambatTime / 30).ceil() * 3300;
+                              }
+
+                              // Menghitung gaji lembur
+                              int gajiLembur = controller.listDataPresence[i]["totalOvertime"] * 2000;
+
+                              // Menghitung gaji total
+                              double gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;
+
                               return pw.Container(
                                 width: Get.width,
                                 child: pw.Column(
@@ -248,7 +274,7 @@ class RekapView extends GetView<RekapController> {
                                               ),
                                               pw.Spacer(),
                                               pw.Text(
-                                                gajiHadir != 0 ? "Rp. $gajiHadir" ".000" : "-",
+                                                gajiHadir != 0 ? "Rp. ${gajiHadir.toStringAsFixed(0)}" : "-",
                                                 style: const pw.TextStyle(fontSize: 12),
                                               ),
                                             ],
@@ -262,7 +288,7 @@ class RekapView extends GetView<RekapController> {
                                               ),
                                               pw.Spacer(),
                                               pw.Text(
-                                                gajiLembur != 0 ? "Rp. $gajiLembur" ".000" : "-",
+                                                gajiLembur != 0 ? "Rp. ${gajiLembur.toStringAsFixed(0)}" : "-",
                                                 style: const pw.TextStyle(fontSize: 12),
                                               ),
                                             ],
@@ -276,7 +302,7 @@ class RekapView extends GetView<RekapController> {
                                               ),
                                               pw.Spacer(),
                                               pw.Text(
-                                                gajiTerpotong != 0 ? "Rp. $gajiTerpotong" ".000" : "-",
+                                                gajiTerpotong != 0 ? "Rp. ${gajiTerpotong.toStringAsFixed(0)}" : "-",
                                                 style: const pw.TextStyle(fontSize: 12, color: pdf.PdfColor.fromInt(AppColor.colorRed)),
                                               ),
                                             ],
@@ -295,7 +321,7 @@ class RekapView extends GetView<RekapController> {
                                               ),
                                               pw.Spacer(),
                                               pw.Text(
-                                                gajiTotal != 0 ? "Rp. $gajiTotal" ".000" : "-",
+                                                gajiTotal != 0 ? "Rp. ${gajiTotal.toStringAsFixed(0)}" : "-",
                                                 style: const pw.TextStyle(fontSize: 12, color: pdf.PdfColor.fromInt(AppColor.colorGreen)),
                                               ),
                                             ],

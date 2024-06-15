@@ -39,8 +39,8 @@ class RekapController extends GetxController {
     if (selectedMonth.value == null) return;
     List<Map<String, dynamic>>? resp = await firestore.getDataForMonth(selectedMonth.value!.year, selectedMonth.value!.month);
     if (resp != null && resp.isNotEmpty) {
-      log("LIST : $resp");
-      processData(resp);
+      // log("LIST : $resp");
+      await processData(resp);
     }
   }
   // Panggil fungsi summarizeData dengan daftar data presensi Anda
@@ -102,7 +102,9 @@ class RekapController extends GetxController {
 
       // Menghitung lembur (jika ada)
       if (entry.containsKey('lembur_time')) {
-        summary[userID]?['totalOvertime']++;
+        int lemburTimeInMinutes = int.parse(entry['lembur_time']);
+        int lemburTimeInHours = lemburTimeInMinutes ~/ 60; // konversi ke jam sebagai int
+        summary[userID]?['totalOvertime'] = (summary[userID]?['totalOvertime'] ?? 0) + lemburTimeInHours; // Pastikan menggunakan 0 untuk int
       }
     }
 

@@ -244,14 +244,13 @@ class Utils {
     return DateFormat('HH.mm').format(dateTime);
   }
 
-  static String funcHourCalculateTotal(DateTime? jamMasuk, DateTime? jamKeluar, {Duration? jamLembur}) {
-    // Hitung selisih waktu antara jam masuk dan jam keluar
+  static String funcHourCalculateTotal(DateTime? jamMasuk, DateTime? jamKeluar) {
     if (jamMasuk == null || jamKeluar == null) return "";
-    Duration selisihWaktu = jamKeluar.difference(jamMasuk);
-    // Tambahkan waktu lembur jika ada
-    if (jamLembur != null) {
-      selisihWaktu += jamLembur;
-    }
+    DateTime masukTanpaDetik = DateTime(jamMasuk.year, jamMasuk.month, jamMasuk.day, jamMasuk.hour, jamMasuk.minute);
+    DateTime keluarTanpaDetik = DateTime(jamKeluar.year, jamKeluar.month, jamKeluar.day, jamKeluar.hour, jamKeluar.minute);
+
+    // Hitung selisih waktu antara jam masuk dan jam keluar
+    Duration selisihWaktu = keluarTanpaDetik.difference(masukTanpaDetik);
 
     // Hitung total jam dan menit dari selisih waktu
     int totalMenit = selisihWaktu.inMinutes;

@@ -41,7 +41,7 @@ class CardRecapDetail extends StatelessWidget {
     }
 
     // Menghitung gaji lembur
-    int gajiLembur = listDataPresence["totalOvertime"] * 20;
+    int gajiLembur = listDataPresence["totalOvertime"] * 20000;
 
     // Menghitung gaji total
     double gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;

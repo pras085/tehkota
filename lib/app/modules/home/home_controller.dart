@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -39,19 +42,9 @@ class HomeController extends GetxController {
     //     // "status": "0",
     //   },
     // );
-    List<Map<String, dynamic>>? listPresenceApi = await firestore.getAllPresence();
-    if (listPresenceApi != null) {
-      // List<Map<String, dynamic>> filteredData = listPresenceApi.where((map) => map.isNotEmpty && map.keys.first.startsWith("EMP")).toList();
-      List<Map<String, dynamic>> filteredData = [];
-      // Memeriksa setiap map untuk kunci yang memenuhi kondisi dan map tidak kosong
-      for (var map in listPresenceApi) {
-        map.forEach((key, value) {
-          if (key.startsWith('EMP')) {
-            filteredData.add(value);
-          }
-        });
-      }
-      listDataPresence.addAll(filteredData);
+    var resp = await firestore.getAllPresence();
+    if (resp != null) {
+      listDataPresence.value = resp;
     }
     listDataPresence.refresh();
     // print('PRESENCE : $listDataPresence');

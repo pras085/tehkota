@@ -236,6 +236,7 @@ class RegisterView extends GetView<RegisterController> {
                                                       await controller.dbHelper.deleteSelectedUser(selectedUser?["userID"]);
                                                       await controller.firestore.deleteSelectedUser(selectedUser?["userID"]);
                                                       await controller.firestore.deleteUserDataFromAllDocuments(selectedUser?["userID"]);
+                                                      await controller.firestore.updateFieldInPresenceCollection(selectedUser?["userID"], controller.userNameC.text);
                                                       Utils.showToast(TypeToast.success, "Berhasil mengaphapus data ${selectedUser?["name"]}");
                                                     } catch (e) {
                                                       Utils.showToast(TypeToast.error, "Gagal hapus user!");
