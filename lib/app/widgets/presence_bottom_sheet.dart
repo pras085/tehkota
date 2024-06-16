@@ -120,7 +120,6 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
       if (widget.listPresence != null) {
         if (widget.listPresence!.containsKey("login_presence") && widget.listPresence!.containsKey("logout_presence")) {
           return Container(
-            constraints: BoxConstraints(maxHeight: 250, minWidth: Get.width),
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
             alignment: Alignment.center,
             decoration: const BoxDecoration(
@@ -165,9 +164,9 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
         child: Obx(() {
           return Container(
             // constraints: BoxConstraints(maxHeight: body.value == null && typePresence.value == 1 ? 450 : 330),
-            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+            padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
             // margin: typePresence.value == 2 ? (selectedTab.value == null ? EdgeInsets.only(top: 550) : EdgeInsets.only(top: 350)) : EdgeInsets.only(top: 500),
-            margin: const EdgeInsets.only(top: 400),
+            // margin: const EdgeInsets.only(top: 400),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
