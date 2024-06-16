@@ -146,22 +146,26 @@ class _PresenceViewState extends State<PresenceView> {
               var now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute);
               if (body?["shift"] == "0") {
                 if (now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) {
-                  lemburTime = lemburTime + now.difference(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!);
+                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!.difference(now);
                 }
                 if (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) {
-                  lemburTime = lemburTime + now.difference(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!);
+                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!.difference(now);
                 }
-                print("lembur : ${lemburTime.inMinutes}");
-                body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+                if (lemburTime.inMinutes != 0) {
+                  print("lembur : ${lemburTime.inMinutes}");
+                  body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+                }
               } else {
                 if (now.isBefore(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
-                  lemburTime = now.difference(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!);
+                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftSore)["login_presence"]!.difference(now);
                 }
                 if (now.isAfter(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!)) {
-                  lemburTime = lemburTime + now.difference(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!);
+                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!.difference(now);
                 }
-                print("lembur : ${lemburTime.inMinutes}");
-                body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+                if (lemburTime.inMinutes != 0) {
+                  print("lembur : ${lemburTime.inMinutes}");
+                  body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+                }
               }
               var resLogout = await firestore.addPresence(
                 docID,

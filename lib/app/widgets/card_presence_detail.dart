@@ -12,7 +12,6 @@ class CardPresenceDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var res = Utils.specifyTypeStatus(int.tryParse(listPresence["status"] ?? ""));
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(12),
@@ -21,7 +20,7 @@ class CardPresenceDetail extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(AppColor.colorWhite),
         borderRadius: const BorderRadius.all(Radius.circular(12)),
-        border: Border.all(color: res == TypeStatus.berlangsung ? const Color(AppColor.colorGreen) : Colors.transparent),
+        border: Border.all(color: !listPresence.containsKey("logout_presence") ? const Color(AppColor.colorGreen) : Colors.transparent),
       ),
       child: Column(
         children: [
@@ -197,22 +196,23 @@ class CardPresenceDetail extends StatelessWidget {
 
   Widget _statusPresenceWidget(Map listPresence) {
     var res = Utils.specifyTypeStatus(int.tryParse(listPresence["status"] ?? "0"));
-    if (res == TypeStatus.berlangsung) {
-      return Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: const Color(AppColor.colorOrange), strokeAlign: BorderSide.strokeAlignOutside),
-          color: const Color(AppColor.colorOrange).withOpacity(0.15),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-        child: CustomText(
-          Utils.typeStatusToString(res),
-          fontSize: 8,
-          fontWeight: FontWeight.w600,
-          color: const Color(AppColor.colorOrange),
-        ),
-      );
-    } else if (res == TypeStatus.tepatWaktu) {
+    // if (res == TypeStatus.berlangsung) {
+    //   return Container(
+    //     decoration: BoxDecoration(
+    //       borderRadius: const BorderRadius.all(Radius.circular(8)),
+    //       border: Border.all(color: const Color(AppColor.colorOrange), strokeAlign: BorderSide.strokeAlignOutside),
+    //       color: const Color(AppColor.colorOrange).withOpacity(0.15),
+    //     ),
+    //     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+    //     child: CustomText(
+    //       Utils.typeStatusToString(res),
+    //       fontSize: 8,
+    //       fontWeight: FontWeight.w600,
+    //       color: const Color(AppColor.colorOrange),
+    //     ),
+    //   );
+    // } else
+    if (res == TypeStatus.tepatWaktu) {
       return Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8)),

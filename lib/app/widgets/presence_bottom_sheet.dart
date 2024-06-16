@@ -363,7 +363,7 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
           SvgPicture.asset("assets/ic_gagal.svg"),
           Utils.gapVertical(16),
           CustomText(
-            "Presensi ${typePresence.value == 1 ? "Masuk" : "Berhasil"} Gagal",
+            "Presensi ${typePresence.value == 1 ? "Masuk" : "Keluar"} Gagal",
             fontSize: 20,
             color: const Color(AppColor.colorRed),
             fontWeight: FontWeight.w600,

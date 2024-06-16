@@ -9,7 +9,7 @@ enum TypeToast { error, success }
 
 enum TypeShift { shiftPagi, shiftSore, shiftFull }
 
-enum TypeStatus { berlangsung, tepatWaktu, terlambat }
+enum TypeStatus { tepatWaktu, terlambat }
 
 class Utils {
   static FirebaseFirestore? firestore;
@@ -142,8 +142,6 @@ class Utils {
   static specifyTypeStatus(dynamic typeStatus, {bool fromInt = true}) {
     if (fromInt) {
       switch (typeStatus) {
-        case 0:
-          return TypeStatus.berlangsung;
         case 1:
           return TypeStatus.tepatWaktu;
         case 2:
@@ -151,8 +149,6 @@ class Utils {
       }
     } else {
       switch (typeStatus) {
-        case TypeStatus.berlangsung:
-          return 0;
         case TypeStatus.tepatWaktu:
           return 1;
         case TypeStatus.terlambat:
@@ -163,8 +159,6 @@ class Utils {
 
   static String typeStatusToString(TypeStatus typeStatus) {
     switch (typeStatus) {
-      case TypeStatus.berlangsung:
-        return "Berlangsung";
       case TypeStatus.tepatWaktu:
         return "Tepat Waktu";
       case TypeStatus.terlambat:
