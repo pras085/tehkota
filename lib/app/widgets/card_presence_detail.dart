@@ -20,7 +20,7 @@ class CardPresenceDetail extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(AppColor.colorWhite),
         borderRadius: const BorderRadius.all(Radius.circular(12)),
-        border: Border.all(color: !listPresence.containsKey("logout_presence") ? const Color(AppColor.colorGreen) : Colors.transparent),
+        border: Border.all(color: !listPresence.containsKey("login_presence") && !listPresence.containsKey("logout_presence") ? const Color(AppColor.colorGreen) : Colors.transparent),
       ),
       child: Column(
         children: [

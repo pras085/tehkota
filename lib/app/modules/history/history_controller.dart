@@ -9,6 +9,7 @@ class HistoryController extends GetxController {
   RefreshController refreshC = RefreshController();
   var listDataPresence = <Map<String, dynamic>>[].obs;
   DateTime? selectedDate;
+  var searchC = TextEditingController();
 
   @override
   void onInit() {
@@ -27,12 +28,18 @@ class HistoryController extends GetxController {
     super.onClose();
   }
 
-  Future<void> getDataFromApi(String? docID) async {
+  Future<void> getDataFromApi(String? docID, {String? searchName}) async {
     listDataPresence.clear();
     if (docID == null) return;
     List<Map<String, dynamic>>? resp = await firestore.getSpesificPresence(docID);
     if (resp != null) {
       listDataPresence.addAll(resp);
+    }
+    // Jika ada searchName yang diberikan, lakukan filtering berdasarkan userName
+    if (searchName != null) {
+      List<Map<String, dynamic>> filteredData = listDataPresence.where((entry) => entry['userName'] == searchName).toList();
+      listDataPresence.clear(); // Kosongkan listDataPresence sebelum menambahkan hasil filter
+      listDataPresence.addAll(filteredData); // Tambahkan hasil filter ke listDataPresence
     }
     listDataPresence.refresh();
   }
@@ -44,7 +51,10 @@ class HistoryController extends GetxController {
       firstDate: DateTime(2024, 6), // Ganti dengan tanggal awal yang valid
       lastDate: DateTime(2025), // Ganti dengan tanggal akhir yang valid
     );
-    if (picked != null && picked != selectedDate) selectedDate = picked;
-    getDataFromApi(DateFormat("dd-MM-y").format(selectedDate!));
+    if (picked != null && picked != selectedDate) {
+      selectedDate = picked;
+      searchC.clear();
+      await getDataFromApi(DateFormat("dd-MM-y").format(selectedDate!));
+    }
   }
 }

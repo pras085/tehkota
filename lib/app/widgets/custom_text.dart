@@ -131,3 +131,102 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
     );
   }
 }
+
+class CustomSearchField extends StatefulWidget {
+  final TextEditingController? controller;
+  final String? hintText;
+  final Function(String)? onSubmit;
+  final bool isDisable;
+  final Function()? onClearTap;
+
+  const CustomSearchField({
+    super.key,
+    this.controller,
+    this.hintText,
+    required this.onSubmit,
+    this.isDisable = false,
+    this.onClearTap,
+  });
+
+  @override
+  State<CustomSearchField> createState() => _CustomSearchFieldState();
+}
+
+class _CustomSearchFieldState extends State<CustomSearchField> {
+  bool _isSeacrch = false;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // widget.controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: Get.width,
+          margin: EdgeInsets.zero,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: widget.isDisable ? Colors.grey.shade50 : Colors.white,
+            border: Border.all(color: const Color(AppColor.colorLightGrey)),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: TextField(
+                  key: widget.key,
+                  controller: widget.controller,
+                  enabled: !widget.isDisable,
+                  decoration: InputDecoration(
+                    icon: const Icon(Icons.search),
+                    iconColor: const Color(AppColor.colorGreen),
+                    contentPadding: EdgeInsets.zero,
+                    border: InputBorder.none,
+                    hintText: widget.isDisable ? null : "Masukkan nama karyawan",
+                    hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
+                  ),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorBlack), fontFamily: "poppins"),
+                  onChanged: (value) {
+                    if (value.isNotEmpty) {
+                      setState(() {
+                        _isSeacrch = true;
+                      });
+                    }
+                  },
+                  onSubmitted: widget.onSubmit
+                ),
+              ),
+              if (_isSeacrch)
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      widget.controller?.clear();
+                      _isSeacrch = !_isSeacrch;
+                      widget.onClearTap!();
+                    });
+                  },
+                  child: const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Icon(Icons.close),
+                  ),
+                )
+              else
+                const SizedBox()
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -40,39 +40,34 @@ class CustomAppBar extends PreferredSize {
           height: appBarSize,
           padding: const EdgeInsets.all(16),
           color: isPresence ? Colors.transparent : const Color(AppColor.colorWhite),
-          child: Stack(
-            children: [
-              Container(
-                // padding: const EdgeInsets.all(16),
-                child: customBody ??
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: _backButtonWidget(context),
-                        ),
-                        Align(
-                          alignment: Alignment.center,
-                          child: _titleProfileWidget(),
-                        ),
-                        if (prefixIcon != null)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ...?prefixIcon,
-                              ],
-                            ),
-                          )
-                        else
-                          const SizedBox.shrink()
-                      ],
+          child: Container(
+            child: customBody ??
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: _backButtonWidget(context),
                     ),
-              )
-            ],
+                    Align(
+                      alignment: Alignment.center,
+                      child: _titleProfileWidget(),
+                    ),
+                    if (prefixIcon != null)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ...?prefixIcon,
+                          ],
+                        ),
+                      )
+                    else
+                      const SizedBox.shrink()
+                  ],
+                ),
           ),
         ),
       ),

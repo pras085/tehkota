@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:teh_kota/app/routes/app_pages.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
@@ -21,40 +22,65 @@ class HistoryView extends GetView<HistoryController> {
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       appBar: CustomAppBar(
+        appBarSize: 135,
         customBody: Obx(() {
           return SizedBox(
             width: Get.width,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                if (!Utils.isAdmin.value)
-                  InkWell(
-                    onTap: () => Get.back(),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: SvgPicture.asset(
-                          "assets/ic_back_button.svg",
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (!Utils.isAdmin.value)
+                      InkWell(
+                        onTap: () => Get.back(),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: SvgPicture.asset(
+                              "assets/ic_back_button.svg",
+                            ),
+                          ),
                         ),
                       ),
+                    const CustomText(
+                      "Riwayat Presensi",
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ),
-                const CustomText(
-                  "Riwayat Presensi",
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                    if (!Utils.isAdmin.value)
+                      InkWell(
+                        onTap: () {
+                          Get.toNamed(Routes.RECAP);
+                        },
+                        child: SvgPicture.asset(
+                          "assets/ic_recap.svg",
+                        ),
+                      )
+                  ],
                 ),
-                if (!Utils.isAdmin.value)
-                  InkWell(
-                    onTap: () {
-                      Get.toNamed(Routes.RECAP);
+                Utils.gapVertical(16),
+                Expanded(
+                  child: CustomSearchField(
+                    controller: controller.searchC,
+                    isDisable: controller.listDataPresence.isEmpty,
+                    onSubmit: (value) {
+                      print("TEST $value");
+                      controller.getDataFromApi(
+                        DateFormat("dd-MM-y").format(controller.selectedDate!),
+                        searchName: value.isNotEmpty ? value : null,
+                      );
                     },
-                    child: SvgPicture.asset(
-                      "assets/ic_recap.svg",
-                    ),
-                  )
+                    onClearTap: () {
+                      controller.getDataFromApi(
+                        DateFormat("dd-MM-y").format(controller.selectedDate!),
+                        searchName: null,
+                      );
+                    },
+                  ),
+                )
               ],
             ),
           );

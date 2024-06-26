@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -9,8 +8,8 @@ class RekapController extends GetxController {
   CloudFirestoreService firestore = CloudFirestoreService();
   RefreshController refreshC = RefreshController();
   var scrollC = ScrollController();
-
   var listDataPresence = <Map<String, dynamic>>[].obs;
+  var searchC = TextEditingController();
 
   @override
   void onInit() {
@@ -54,6 +53,7 @@ class RekapController extends GetxController {
           'totalOvertime': userData['totalOvertime'],
         });
       });
+      listDataPresence.retainWhere((entry) => entry['userName'].toString().toLowerCase().contains(searchC.text));
       listDataPresence.refresh();
       // print("LIST : $listDataPresence");
     } else {

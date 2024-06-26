@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:teh_kota/app/modules/recap/recap_controller.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/widgets/card_recap_detail.dart';
@@ -21,34 +22,55 @@ class RekapView extends GetView<RekapController> {
     return Scaffold(
       backgroundColor: const Color(AppColor.colorBgGray),
       appBar: CustomAppBar(
+        appBarSize: 135,
         customBody: SizedBox(
           width: Get.width,
-          child: Row(
+          child: Column(
             children: [
-              if (!Utils.isAdmin.value)
-                InkWell(
-                  onTap: () => Get.back(),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: SvgPicture.asset(
-                        "assets/ic_back_button.svg",
+              Row(
+                children: [
+                  if (!Utils.isAdmin.value)
+                    InkWell(
+                      onTap: () => Get.back(),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: SvgPicture.asset(
+                            "assets/ic_back_button.svg",
+                          ),
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: Align(
+                      alignment: (!Utils.isAdmin.value) ? Alignment.center : Alignment.centerLeft,
+                      child: const CustomText(
+                        "Rekap Presensi",
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                ),
-              Expanded(
-                child: Align(
-                  alignment: (!Utils.isAdmin.value) ? Alignment.center : Alignment.centerLeft,
-                  child: const CustomText(
-                    "Rekap Presensi",
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                ],
               ),
+              Utils.gapVertical(16),
+              Obx(() {
+                return Expanded(
+                  child: CustomSearchField(
+                    controller: controller.searchC,
+                    isDisable: controller.listDataPresence.isEmpty,
+                    onSubmit: (value) {
+                      print("TEST ");
+                      controller.getDataFromApi();
+                    },
+                    onClearTap: () {
+                      controller.getDataFromApi();
+                    },
+                  ),
+                );
+              })
             ],
           ),
         ),
