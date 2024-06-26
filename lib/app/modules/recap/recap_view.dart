@@ -47,7 +47,7 @@ class RekapView extends GetView<RekapController> {
                     child: Align(
                       alignment: (!Utils.isAdmin.value) ? Alignment.center : Alignment.centerLeft,
                       child: const CustomText(
-                        "Rekap Presensi",
+                        "Rekap Gaji",
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
