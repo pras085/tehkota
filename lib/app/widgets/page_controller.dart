@@ -7,7 +7,7 @@ import 'package:teh_kota/app/modules/login/login_view.dart';
 import 'package:teh_kota/app/modules/presence/presence_view.dart';
 import 'package:teh_kota/app/modules/profile/profile_view.dart';
 import 'package:teh_kota/app/modules/register/register_view.dart';
-import 'package:teh_kota/app/modules/recap/recap_view.dart';
+import 'package:teh_kota/app/modules/recap_sallary/recap_sallary_view.dart';
 import 'package:teh_kota/app/modules/history/history_view.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/custom_fab_button.dart';
