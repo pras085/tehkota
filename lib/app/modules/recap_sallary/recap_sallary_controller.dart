@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
+import 'package:teh_kota/app/db/databse_helper.dart';
 
 class RekapController extends GetxController {
   var selectedMonth = Rxn<DateTime>();
@@ -10,12 +11,15 @@ class RekapController extends GetxController {
   var scrollC = ScrollController();
   var listDataPresence = <Map<String, dynamic>>[].obs;
   var searchC = TextEditingController();
+  var settings = <Map<String, dynamic>>[].obs;
+  DatabaseHelper dbHelper = DatabaseHelper.instance;
 
   @override
   void onInit() {
     super.onInit();
     selectedMonth.value = DateTime.now();
     getDataFromApi();
+    getDataFromLocal();
   }
 
   @override
@@ -104,5 +108,12 @@ class RekapController extends GetxController {
     }
 
     return summary;
+  }
+
+  void getDataFromLocal() async {
+    settings.value = await dbHelper.queryAllRows('setting');
+    if (settings.isNotEmpty) {
+      print(settings.value);
+    }
   }
 }

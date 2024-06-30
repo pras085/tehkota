@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 
@@ -42,6 +43,7 @@ class CustomTextFormField extends StatefulWidget {
   final TextEditingController? controller;
   final bool isPassword;
   final String? title;
+  final bool isOnlyNumber;
 
   final String? hintText;
 
@@ -51,6 +53,7 @@ class CustomTextFormField extends StatefulWidget {
     this.hintText,
     this.isPassword = false,
     this.title,
+    this.isOnlyNumber = false,
   });
 
   @override
@@ -72,62 +75,66 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.title != null)
-          CustomText(
-            widget.title!,
-            color: const Color(AppColor.colorDarkGrey),
-            fontSize: 12,
-          )
-        else
-          const SizedBox.shrink(),
-        Utils.gapVertical(8),
-        Container(
-          width: Get.width,
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(AppColor.colorLightGrey)), borderRadius: BorderRadius.circular(12)),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Expanded(
-                child: TextField(
-                  key: widget.key,
-                  controller: widget.controller,
-                  // focusNode: widget.focusNode,
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                    hintText: widget.hintText,
-                    hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
+    return Flexible(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.title != null)
+            CustomText(
+              widget.title!,
+              color: const Color(AppColor.colorDarkGrey),
+              fontSize: 12,
+            )
+          else
+            const SizedBox.shrink(),
+          Utils.gapVertical(8),
+          Container(
+            width: Get.width,
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(AppColor.colorLightGrey)), borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: TextField(
+                    key: widget.key,
+                    controller: widget.controller,
+                    // focusNode: widget.focusNode,
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      hintText: widget.hintText,
+                      hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
+                    ),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorBlack), fontFamily: "poppins"),
+                    obscureText: _showPass,
+                    keyboardType: widget.isOnlyNumber ? TextInputType.number : null,
+                    inputFormatters: widget.isOnlyNumber ? [FilteringTextInputFormatter.digitsOnly] : [],
+                    // onTap: widget.onTap,
                   ),
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorBlack), fontFamily: "poppins"),
-                  obscureText: _showPass,
-                  // inputFormatters: widget.inputFormatters,
-                  // onTap: widget.onTap,
                 ),
-              ),
-              if (widget.isPassword)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _showPass = !_showPass;
-                    });
-                  },
-                  child: SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: Icon(_showPass ? Icons.visibility : Icons.visibility_off),
-                  ),
-                )
-              else
-                const SizedBox()
-            ],
+                if (widget.isPassword)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _showPass = !_showPass;
+                      });
+                    },
+                    child: SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Icon(_showPass ? Icons.visibility : Icons.visibility_off),
+                    ),
+                  )
+                else
+                  const SizedBox()
+              ],
+            ),
           ),
-        ),
-        Utils.gapVertical(16),
-      ],
+          Utils.gapVertical(16),
+        ],
+      ),
     );
   }
 }
@@ -184,27 +191,26 @@ class _CustomSearchFieldState extends State<CustomSearchField> {
             children: [
               Expanded(
                 child: TextField(
-                  key: widget.key,
-                  controller: widget.controller,
-                  enabled: !widget.isDisable,
-                  decoration: InputDecoration(
-                    icon: const Icon(Icons.search),
-                    iconColor: const Color(AppColor.colorGreen),
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                    hintText: widget.isDisable ? null : "Masukkan nama karyawan",
-                    hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
-                  ),
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorBlack), fontFamily: "poppins"),
-                  onChanged: (value) {
-                    if (value.isNotEmpty) {
-                      setState(() {
-                        _isSeacrch = true;
-                      });
-                    }
-                  },
-                  onSubmitted: widget.onSubmit
-                ),
+                    key: widget.key,
+                    controller: widget.controller,
+                    enabled: !widget.isDisable,
+                    decoration: InputDecoration(
+                      icon: const Icon(Icons.search),
+                      iconColor: const Color(AppColor.colorGreen),
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      hintText: widget.isDisable ? null : "Masukkan nama karyawan",
+                      hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
+                    ),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorBlack), fontFamily: "poppins"),
+                    onChanged: (value) {
+                      if (value.isNotEmpty) {
+                        setState(() {
+                          _isSeacrch = true;
+                        });
+                      }
+                    },
+                    onSubmitted: widget.onSubmit),
               ),
               if (_isSeacrch)
                 GestureDetector(

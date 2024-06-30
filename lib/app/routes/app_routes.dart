@@ -11,4 +11,5 @@ abstract class Routes {
   static const HISTORY = '/riwayat';
   static const RECAP = '/rekap';
   static const LOGIN = '/login';
+  static const SETTING = '/setting';
 }

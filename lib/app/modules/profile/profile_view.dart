@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:get/get.dart';
+import 'package:teh_kota/app/routes/app_pages.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/custom_appbar.dart';
@@ -116,6 +117,31 @@ class ProfileView extends GetView<ProfileController> {
                 //   ],
                 // ),
                 // Utils.gapVertical(16),
+                InkWell(
+                  onTap: () => Get.toNamed(Routes.SETTING),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.settings,color: Colors.green),
+                      ),
+                      const CustomText(
+                        "Setting",
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                      const Spacer(),
+                      RotatedBox(quarterTurns: 90, child: SvgPicture.asset("assets/ic_back_button.svg")),
+                    ],
+                  ),
+                ),
+                Utils.gapVertical(16),
                 InkWell(
                   onTap: () => controller.onTapButton(),
                   child: Row(

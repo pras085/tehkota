@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:teh_kota/app/modules/recap_sallary/recap_sallary_controller.dart';
 import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
@@ -19,16 +20,17 @@ class CardRecapDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var controller = Get.find<RekapController>();
     // Menghitung totalPresence dalam jam
     double totalPresenceInHours = listDataPresence["totalPresence"].toDouble();
 
     // Menghitung gaji berdasarkan aturan yang diberikan
-    double gajiPerJam = 6600;
+    double gajiPerJam = double.parse(controller.settings[0]['gaji'] ?? "6600");
     double gajiHadir = 0;
     if (totalPresenceInHours >= 12) {
-      gajiHadir = 80000;
+      gajiHadir = double.parse(controller.settings[0]['gaji_12_jam'] ?? "80000");
     } else if (totalPresenceInHours >= 6) {
-      gajiHadir = 40000;
+      gajiHadir = double.parse(controller.settings[0]['gaji_6_jam'] ?? "40000");
     } else {
       gajiHadir = totalPresenceInHours * gajiPerJam;
     }
@@ -37,11 +39,13 @@ class CardRecapDetail extends StatelessWidget {
     double gajiTerpotong = 0;
     if (listDataPresence["totalLate"] != 0) {
       int terlambatTime = listDataPresence["totalLate"]; // Kita anggap terlambatTime sudah dalam menit
-      gajiTerpotong = (terlambatTime / 30).ceil() * 3300;
+      terlambatTime = terlambatTime * 60;
+      gajiTerpotong = (terlambatTime / 30).ceil() * double.parse(controller.settings[0]['potongan'] ?? "3300");
     }
 
     // Menghitung gaji lembur
-    int gajiLembur = listDataPresence["totalOvertime"] * 20000;
+
+    int gajiLembur = listDataPresence["totalOvertime"] * int.parse(controller.settings[0]['lembur'] ?? "2000");
 
     // Menghitung gaji total
     double gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;

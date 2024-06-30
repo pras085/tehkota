@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:teh_kota/app/modules/register/register_binding.dart';
 import 'package:teh_kota/app/modules/register/register_view.dart';
+import 'package:teh_kota/app/modules/settings/settings_binding.dart';
+import 'package:teh_kota/app/modules/settings/settings_view.dart';
 
 import '../modules/profile/profile_binding.dart';
 import '../modules/profile/profile_view.dart';
@@ -57,6 +59,11 @@ class AppPages {
       name: Routes.LOGIN,
       page: () => const LoginView(),
       binding: LoginBinding(),
+    ),
+    GetPage(
+      name: Routes.SETTING,
+      page: () => const SettingsView(),
+      binding: SettingsBinding(),
     ),
   ];
 }
