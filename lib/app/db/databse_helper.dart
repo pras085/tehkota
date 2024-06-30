@@ -95,8 +95,11 @@ class DatabaseHelper {
   }
 
   Future<List<Map<String, dynamic>>> queryAllRows(String tableName) async {
-    Database db = await instance.database;
-    return await db.query(tableName);
+    try {
+      Database db = await instance.database;
+      return await db.query(tableName);
+    } catch (e) {}
+    return [];
   }
 
   Future<void> deleteAllRows(String tableName) async {

@@ -114,6 +114,30 @@ class RekapController extends GetxController {
     settings.value = await dbHelper.queryAllRows('setting');
     if (settings.isNotEmpty) {
       print(settings.value);
+    } else {
+      await dbHelper.createTable(
+        'setting',
+        {
+          "settingID": "TEXT PRIMARY KEY",
+          "gaji": "TEXT NOT NULL",
+          "gaji_6_jam": "TEXT NOT NULL",
+          "gaji_12_jam": "TEXT NOT NULL",
+          "lembur": "TEXT NOT NULL",
+          "potongan": "TEXT NOT NULL",
+        },
+      );
+      await dbHelper.insertDynamic(
+        'setting',
+        {
+          "settingID": "0",
+          "gaji": "6600",
+          "gaji_6_jam": "40000",
+          "gaji_12_jam": "80000",
+          "lembur": "2000",
+          "potongan": "3300",
+        },
+      );
+      listDataPresence.refresh();
     }
   }
 }

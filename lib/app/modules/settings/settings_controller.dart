@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:teh_kota/app/db/databse_helper.dart';
+import 'package:teh_kota/app/routes/app_pages.dart';
+import 'package:teh_kota/app/utils/utils.dart';
+
+import '../../widgets/page_controller.dart';
 
 class SettingsController extends GetxController {
   DatabaseHelper dbHelper = DatabaseHelper.instance;
@@ -28,33 +32,10 @@ class SettingsController extends GetxController {
   }
 
   void getSettingOnLocal() async {
-    // await dbHelper.deleteAllRows('setting');
-    // await dbHelper.createTable(
-    //   'setting',
-    //   {
-    //     "settingID" : "TEXT PRIMARY KEY",
-    //     "gaji": "TEXT NOT NULL",
-    //     "gaji_6_jam": "TEXT NOT NULL",
-    //     "gaji_12_jam": "TEXT NOT NULL",
-    //     "lembur": "TEXT NOT NULL",
-    //     "potongan": "TEXT NOT NULL",
-    //   },
-    // );
-    // await dbHelper.insertDynamic(
-    //   'setting',
-    //   {
-    //     "settingID" : "0",
-    //     "gaji": "6600",
-    //     "gaji_6_jam": "40000",
-    //     "gaji_12_jam": "80000",
-    //     "lembur": "2000",
-    //     "potongan": "3300",
-    //   },
-    // );
     // Menampilkan semua baris dari tabel 'setting'
     settings.value = await dbHelper.queryAllRows('setting');
-    textFieldC.clear(); // Bersihkan textFieldC sebelum mengisinya kembali
     if (settings.isNotEmpty) {
+      textFieldC.clear(); // Bersihkan textFieldC sebelum mengisinya kembali
       print(settings.value);
       for (var setting in settings) {
         TextEditingController gajiController = TextEditingController(text: setting['gaji'].toString());
@@ -98,13 +79,51 @@ class SettingsController extends GetxController {
           potonganController,
         ]);
       }
+    } else {
+      await dbHelper.createTable(
+        'setting',
+        {
+          "settingID": "TEXT PRIMARY KEY",
+          "gaji": "TEXT NOT NULL",
+          "gaji_6_jam": "TEXT NOT NULL",
+          "gaji_12_jam": "TEXT NOT NULL",
+          "lembur": "TEXT NOT NULL",
+          "potongan": "TEXT NOT NULL",
+        },
+      );
+      await dbHelper.insertDynamic(
+        'setting',
+        {
+          "settingID": "0",
+          "gaji": "6600",
+          "gaji_6_jam": "40000",
+          "gaji_12_jam": "80000",
+          "lembur": "2000",
+          "potongan": "3300",
+        },
+      );
     }
   }
 
   void updateOnLocal() async {
-    await dbHelper.insertDynamic("setting", {
-      "gaji_6_jam": textFieldC[1].text.toString(),
-      "gaji_12_jam": textFieldC[2].text.toString()
+    await dbHelper
+        .updateDynamic(
+            "setting",
+            {
+              "gaji": textFieldC[0].text,
+              "gaji_6_jam": textFieldC[1].text,
+              "gaji_12_jam": textFieldC[2].text,
+              "lembur": textFieldC[3].text,
+              "potongan": textFieldC[4].text,
+            },
+            "settingID = ?",
+            ["0"])
+        .then((value) {
+      Get.offAll(() => const PageViewUserController());
+      Utils.showToast(TypeToast.success, "Berhasil update setting!");
+    }).onError((error, stackTrace) {
+      Get.offAll(() => const PageViewUserController());
+      Utils.showToast(TypeToast.error, "Terjadi kesalahan !");
     });
   }
 }
