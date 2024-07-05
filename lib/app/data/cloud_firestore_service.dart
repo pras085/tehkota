@@ -1,6 +1,7 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
+
+import '../utils/utils.dart';
 
 class CloudFirestoreService {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -241,5 +242,63 @@ class CloudFirestoreService {
     } catch (e) {
       print('Error updating field: $e');
     }
+  }
+
+  Future<void> updateFieldGajiInUsersCollection(String userID, Map<String, dynamic> newValue) async {
+    try {
+      // Ambil dokumen spesifik dari koleksi 'users'
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('users').doc(userID).get();
+
+      // Cek jika dokumen ditemukan
+      if (snapshot.exists) {
+        // Ambil data dari dokumen
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+
+        // Perbarui nilai gaji, lembur, dan potongan di dalam data
+        data.putIfAbsent("gaji", () {
+          return {
+            "gaji": newValue['gaji'],
+            "lembur": newValue['lembur'],
+            "potongan": newValue['potongan'],
+          };
+        });
+        // Update dokumen di Firestore
+        await snapshot.reference.update(data);
+
+        // print('User $userID updated in document with ID ${doc.id}');
+        Utils.showToast(TypeToast.success, 'Update selesai.');
+      } else {
+        Utils.showToast(TypeToast.error, 'Data does not exist.');
+      }
+    } catch (e) {
+      Utils.showToast(TypeToast.error, 'Error updating.');
+    }
+  }
+
+  // get all `users` collection's documents
+  Future<List<Map<String, dynamic>>?> getAllUser() async {
+    List<Map<String, dynamic>>? listUsers;
+    try {
+      QuerySnapshot querySnapshot = await db.collection('users').get();
+      listUsers = [];
+      if (querySnapshot.docs.isNotEmpty) {
+        // Iterasi melalui setiap dokumen
+        for (var doc in querySnapshot.docs) {
+          // Iterasi melalui setiap user di dalam dokumen
+          Map<String, dynamic> docData = doc.data() as Map<String, dynamic>;
+          listUsers.add(docData);
+        }
+
+        // Sorting berdasarkan login_presence descending (terbaru ke terlama)
+        // listUsers.sort((a, b) {
+        //   var loginPresenceA = DateTime.parse(a['login_presence']);
+        //   var loginPresenceB = DateTime.parse(b['login_presence']);
+        //   return loginPresenceB.compareTo(loginPresenceA);
+        // });
+      }
+    } catch (e) {
+      print("Error fetching getAllUser data: $e");
+    }
+    return listUsers;
   }
 }

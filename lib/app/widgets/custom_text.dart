@@ -91,7 +91,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           Utils.gapVertical(8),
           Container(
             width: Get.width,
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(AppColor.colorLightGrey)), borderRadius: BorderRadius.circular(12)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -105,6 +105,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
                       hintText: widget.hintText,
+                      isDense: true,
                       hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
                     ),
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorBlack), fontFamily: "poppins"),
@@ -180,7 +181,7 @@ class _CustomSearchFieldState extends State<CustomSearchField> {
         Container(
           width: Get.width,
           margin: EdgeInsets.zero,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
           decoration: BoxDecoration(
             color: widget.isDisable ? Colors.grey.shade50 : Colors.white,
             border: Border.all(color: const Color(AppColor.colorLightGrey)),
@@ -199,6 +200,7 @@ class _CustomSearchFieldState extends State<CustomSearchField> {
                       iconColor: const Color(AppColor.colorGreen),
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
+                      isDense: true,
                       hintText: widget.isDisable ? null : "Masukkan nama karyawan",
                       hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(AppColor.colorLightGrey), fontFamily: "poppins"),
                     ),

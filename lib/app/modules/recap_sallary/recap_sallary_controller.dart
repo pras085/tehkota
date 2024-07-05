@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -10,8 +12,10 @@ class RekapController extends GetxController {
   RefreshController refreshC = RefreshController();
   var scrollC = ScrollController();
   var listDataPresence = <Map<String, dynamic>>[].obs;
+  var isEditMode = <RxBool>[].obs; // Gunakan RxList<RxBool> untuk mengontrol edit mode tiap item
+  var listAnggaranController = <Map<String, TextEditingController>>[].obs;
   var searchC = TextEditingController();
-  var settings = <Map<String, dynamic>>[].obs;
+  // var settings = <Map<String, dynamic>>[].obs;
   DatabaseHelper dbHelper = DatabaseHelper.instance;
 
   @override
@@ -19,7 +23,7 @@ class RekapController extends GetxController {
     super.onInit();
     selectedMonth.value = DateTime.now();
     getDataFromApi();
-    getDataFromLocal();
+    // getDataFromLocal();
   }
 
   @override
@@ -32,12 +36,22 @@ class RekapController extends GetxController {
     super.onClose();
   }
 
+  void toggleEditMode(int index) {
+    // Matikan mode edit untuk semua item
+    for (var i = 0; i < isEditMode.length; i++) {
+      isEditMode[i].value = false;
+    }
+    // Nyalakan mode edit untuk item yang dipilih
+    isEditMode[index].value = true;
+    isEditMode.refresh();
+  }
+
   Future<void> getDataFromApi() async {
     listDataPresence.clear();
+    listAnggaranController.clear();
     if (selectedMonth.value == null) return;
     List<Map<String, dynamic>>? resp = await firestore.getDataForMonth(selectedMonth.value!.year, selectedMonth.value!.month);
     if (resp != null && resp.isNotEmpty) {
-      // log("LIST : $resp");
       await processData(resp);
     }
   }
@@ -47,19 +61,49 @@ class RekapController extends GetxController {
     Map<String, Map<String, dynamic>>? summary = await summarizeData(data);
 
     if (summary != null) {
-      // Lakukan sesuatu dengan ringkasan data, misalnya, tampilkan atau simpan ke database.
-      summary.forEach((userID, userData) {
-        listDataPresence.add({
-          'userID': userID,
-          'userName': userData['userName'],
-          'totalPresence': userData['totalPresence'],
-          'totalLate': userData['totalLate'],
-          'totalOvertime': userData['totalOvertime'],
+      var respUser = await firestore.getAllUser();
+      if (respUser != null && respUser.isNotEmpty) {
+        // Membuat map untuk mempermudah pencarian user berdasarkan userID
+        Map<String, Map<String, dynamic>> userMap = {};
+        for (var user in respUser) {
+          userMap[user['userID']] = user;
+        }
+
+        summary.forEach((userID, userData) {
+          // Mendapatkan data user dari map berdasarkan userID
+          var user = userMap[userID];
+          if (user != null && user.containsKey('gaji')) {
+            // Menambahkan nilai gaji ke dalam data presence
+            listDataPresence.add({
+              'userID': userID,
+              'userName': userData['userName'],
+              'totalPresence': userData['totalPresence'],
+              'totalLate': userData['totalLate'],
+              'totalOvertime': userData['totalOvertime'],
+              'gaji': user['gaji'], // Menambahkan nilai gaji
+            });
+          } else {
+            // Jika data user tidak ditemukan atau tidak memiliki gaji, tambahkan dengan nilai default
+            listDataPresence.add({
+              'userID': userID,
+              'userName': userData['userName'],
+              'totalPresence': userData['totalPresence'],
+              'totalLate': userData['totalLate'],
+              'totalOvertime': userData['totalOvertime'],
+              'gaji': {'lembur': "2000", 'potongan': "3300", 'gaji': "6600"}, // Nilai default jika tidak ada data gaji
+              // 'gaji': {'lembur': "2222", 'potongan': "3333", 'gaji': "6666"}, // TEST aja
+            });
+          }
         });
-      });
-      listDataPresence.retainWhere((entry) => entry['userName'].toString().toLowerCase().contains(searchC.text));
-      listDataPresence.refresh();
-      // print("LIST : $listDataPresence");
+
+        // Filter listDataPresence berdasarkan searchC.text
+        listDataPresence.retainWhere((entry) => entry['userName'].toString().toLowerCase().contains(searchC.text));
+        listDataPresence.refresh();
+        isEditMode.value = List.generate(listDataPresence.length, (index) => false).map((e) => RxBool(false)).toList();
+        // log("LIST : $listDataPresence");
+      } else {
+        print('Tidak ada data user.');
+      }
     } else {
       print('Tidak ada data presensi.');
     }
@@ -110,34 +154,53 @@ class RekapController extends GetxController {
     return summary;
   }
 
-  void getDataFromLocal() async {
-    settings.value = await dbHelper.queryAllRows('setting');
-    if (settings.isNotEmpty) {
-      print(settings.value);
-    } else {
-      await dbHelper.createTable(
-        'setting',
-        {
-          "settingID": "TEXT PRIMARY KEY",
-          "gaji": "TEXT NOT NULL",
-          "gaji_6_jam": "TEXT NOT NULL",
-          "gaji_12_jam": "TEXT NOT NULL",
-          "lembur": "TEXT NOT NULL",
-          "potongan": "TEXT NOT NULL",
-        },
-      );
-      await dbHelper.insertDynamic(
-        'setting',
-        {
-          "settingID": "0",
-          "gaji": "6600",
-          "gaji_6_jam": "40000",
-          "gaji_12_jam": "80000",
-          "lembur": "2000",
-          "potongan": "3300",
-        },
-      );
-      listDataPresence.refresh();
+  // Method to calculate gaji hadir
+  String calculateGajiHadir(Map data) {
+    int totalPresenceInHours = data["totalPresence"];
+    int gajiPerJam = int.parse("${data['gaji']['gaji'] ?? 6600}");
+    double gajiHadir = totalPresenceInHours * gajiPerJam.toDouble();
+    gajiHadir = (gajiHadir / 1000).ceil() * 1000;
+    return "Rp. ${gajiHadir.toInt().toStringAsFixed(0)}";
+  }
+
+  // Method to calculate gaji lembur
+  String calculateGajiLembur(Map data) {
+    int gajiPerJamLembur = int.parse("${data['gaji']['lembur'] ?? 2000}");
+    int gajiLembur = data["totalOvertime"] * gajiPerJamLembur;
+    return "Rp. ${gajiLembur.toStringAsFixed(0)}";
+  }
+
+  // Method to calculate gaji terpotong
+  String calculateGajiTerpotong(Map data) {
+    int gajiPotongan = int.parse("${data['gaji']['potongan'] ?? 3300}");
+    int terlambatTime = data["totalLate"];
+    double gajiTerpotong = 0;
+    if (terlambatTime != 0) {
+      terlambatTime *= 60;
+      gajiTerpotong = (terlambatTime / 30).ceil() * gajiPotongan.toDouble();
     }
+    return "Rp. ${gajiTerpotong.toStringAsFixed(0)}";
+  }
+
+  // Method to calculate total gaji
+  String calculateGajiTotal(Map data) {
+    int gajiHadir = int.parse(calculateGajiHadir(data).replaceAll("Rp. ", "").replaceAll(",", ""));
+    int gajiLembur = int.parse(calculateGajiLembur(data).replaceAll("Rp. ", "").replaceAll(",", ""));
+    int gajiTerpotong = int.parse(calculateGajiTerpotong(data).replaceAll("Rp. ", "").replaceAll(",", ""));
+    int gajiTotal = gajiHadir - gajiTerpotong + gajiLembur;
+    return "Rp. ${gajiTotal.toStringAsFixed(0)}";
+  }
+
+// Fungsi untuk menghitung total pengeluaran
+  String calculateTotalPengeluaran(Map data, {bool isSingle = false}) {
+    num totalPengeluaran = 0;
+    if (isSingle) {
+      totalPengeluaran = int.parse(calculateGajiTotal(data).replaceAll("Rp. ", "").replaceAll(",", ""));
+    } else {
+      for (var data in listDataPresence) {
+        totalPengeluaran += int.parse(calculateGajiTotal(data).replaceAll("Rp. ", "").replaceAll(",", ""));
+      }
+    }
+    return "Rp. ${totalPengeluaran.toStringAsFixed(0)}";
   }
 }
