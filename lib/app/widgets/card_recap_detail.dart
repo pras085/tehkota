@@ -87,33 +87,35 @@ class _CardRecapDetailState extends State<CardRecapDetail> {
                   widget.data["userName"].toString(),
                   fontSize: 12,
                 ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    if (isEdit) {
-                      updateDataInFirestore();
-                    } else {
-                      controller.toggleEditMode(widget.index ?? 0);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: isEdit ? const Color(AppColor.colorLightGreen) : const Color(AppColor.colorBlackNormal),
-                    ),
-                    child: CustomText(
-                      isEdit ? "Simpan" : "Edit",
-                      fontWeight: FontWeight.w500,
-                      color: isEdit ? const Color(AppColor.colorBlackNormal) : const Color(AppColor.colorWhite),
+                if (widget.isAdmin) ...[
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      if (isEdit) {
+                        updateDataInFirestore();
+                      } else {
+                        controller.toggleEditMode(widget.index ?? 0);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: isEdit ? const Color(AppColor.colorLightGreen) : const Color(AppColor.colorBlackNormal),
+                      ),
+                      child: CustomText(
+                        isEdit ? "Simpan" : "Edit",
+                        fontWeight: FontWeight.w500,
+                        color: isEdit ? const Color(AppColor.colorBlackNormal) : const Color(AppColor.colorWhite),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                InkWell(
-                  onTap: widget.onPrintTap,
-                  child: const Icon(Icons.print),
-                ),
+                  const SizedBox(width: 10),
+                  InkWell(
+                    onTap: widget.onPrintTap,
+                    child: const Icon(Icons.print),
+                  ),
+                ]
               ],
             ),
             Container(

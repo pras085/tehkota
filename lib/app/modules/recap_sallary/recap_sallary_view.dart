@@ -47,17 +47,23 @@ class RekapView extends GetView<RekapController> {
                         ),
                       ),
                     ),
-                  const CustomText(
-                    "Rekap Gaji",
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: const Align(
+                      alignment: Alignment.center,
+                      child: CustomText(
+                        "Rekap Gaji",
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  InkWell(
-                    onTap: () async {
-                      await printAllData();
-                    },
-                    child: const Icon(Icons.print),
-                  )
+                  if (Utils.isAdmin.value)
+                    InkWell(
+                      onTap: () async {
+                        await printAllData();
+                      },
+                      child: const Icon(Icons.print),
+                    )
                 ],
               ),
               Utils.gapVertical(16),
