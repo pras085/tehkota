@@ -28,38 +28,39 @@ class HistoryView extends GetView<HistoryController> {
             width: Get.width,
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (!Utils.isAdmin.value)
-                      InkWell(
-                        onTap: () => Get.back(),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: SvgPicture.asset(
-                              "assets/ic_back_button.svg",
+                Obx(()=> Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (!Utils.isAdmin.value)
+                        InkWell(
+                          onTap: () => Get.back(),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: SvgPicture.asset(
+                                "assets/ic_back_button.svg",
+                              ),
                             ),
                           ),
                         ),
+                      const CustomText(
+                        "Riwayat Presensi",
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
-                    const CustomText(
-                      "Riwayat Presensi",
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    if (!Utils.isAdmin.value)
-                      InkWell(
-                        onTap: () {
-                          Get.toNamed(Routes.RECAP);
-                        },
-                        child: SvgPicture.asset(
-                          "assets/ic_recap.svg",
-                        ),
-                      )
-                  ],
+                      if (!Utils.isAdmin.value)
+                        InkWell(
+                          onTap: () {
+                            Get.toNamed(Routes.RECAP);
+                          },
+                          child: SvgPicture.asset(
+                            "assets/ic_recap.svg",
+                          ),
+                        )
+                    ],
+                  ),
                 ),
                 Utils.gapVertical(16),
                 Expanded(

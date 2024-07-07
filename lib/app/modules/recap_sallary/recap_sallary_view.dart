@@ -47,16 +47,18 @@ class RekapView extends GetView<RekapController> {
                         ),
                       ),
                     ),
-                  Expanded(
-                    child: const Align(
-                      alignment: Alignment.center,
-                      child: CustomText(
-                        "Rekap Gaji",
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                  Obx(() {
+                    return Expanded(
+                      child: Align(
+                        alignment: Utils.isAdmin.value ? Alignment.centerLeft : Alignment.center,
+                        child: CustomText(
+                          "Rekap ${Utils.isAdmin.value ? "Gaji" : "Presensi"}",
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   if (Utils.isAdmin.value)
                     InkWell(
                       onTap: () async {
