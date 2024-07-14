@@ -55,25 +55,32 @@ class HomeView extends GetView<HomeController> {
           await Future.delayed(const Duration(seconds: 1));
           controller.refreshC.refreshCompleted();
         },
-        child: SingleChildScrollView(
-          controller: controller.scrollC,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 24,
-          ),
-          child: SizedBox(
-            width: Get.width,
-            height: Get.height,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _shiftTodayWidget(),
-                _historyPresenceWidget(),
-              ],
+        child: Obx(() {
+          if (controller.officeHoursFromDb.value?.isEmpty ?? true) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return SingleChildScrollView(
+            controller: controller.scrollC,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 24,
             ),
-          ),
-        ),
+            child: SizedBox(
+              width: Get.width,
+              height: Get.height,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _shiftTodayWidget(),
+                  _historyPresenceWidget(),
+                ],
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -99,6 +106,16 @@ class HomeView extends GetView<HomeController> {
 
   _shiftTodayWidget() {
     DateTime now = DateTime.now();
+    var shiftPagi = controller.officeHoursFromDb.value?["pagi"];
+    var shiftSore = controller.officeHoursFromDb.value?["sore"];
+    int split(String val, bool pickFirst) {
+      if (val.contains(":")) {
+        var parts = val.split(":");
+        return int.parse(pickFirst ? parts.first : parts.last);
+      }
+      return int.parse(val); // return the original value if there is no colon
+    }
+
     return Column(
       children: [
         Row(
@@ -116,8 +133,7 @@ class HomeView extends GetView<HomeController> {
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
               child: CustomText(
-                // (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ? Utils.typeShiftToString(TypeShift.shiftPagi) : Utils.typeShiftToString(TypeShift.shiftSore),
-                (now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) || (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!))
+                ((now.isBefore(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)))) || now.isBefore(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false))))
                     ? Utils.typeShiftToString(TypeShift.shiftPagi)
                     : Utils.typeShiftToString(TypeShift.shiftSore),
                 color: const Color(AppColor.colorWhite),
@@ -127,35 +143,47 @@ class HomeView extends GetView<HomeController> {
           ],
         ),
         Utils.gapVertical(16),
-        Row(
-          children: [
-            if ((now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) || now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!) && now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) ...[
-              _cardShiftTodayWidget(
-                "Presensi Masuk",
-                Utils.typeShiftToString(TypeShift.shiftPagi),
-                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!),
-              ),
-              Utils.gapHorizontal(16),
-              _cardShiftTodayWidget(
-                "Presensi Keluar",
-                Utils.typeShiftToString(TypeShift.shiftPagi),
-                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!),
-              ),
-            ] else if (now.isAfter(Utils.pickOfficeHours(((Utils.officeHours(TypeShift.shiftSore)) as Map)["login_presence"])) && now.isBefore(((Utils.officeHours(TypeShift.shiftSore)) as Map)["logout_presence"])) ...[
-              _cardShiftTodayWidget(
-                "Presensi Masuk",
-                Utils.typeShiftToString(TypeShift.shiftSore),
-                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!),
-              ),
-              Utils.gapHorizontal(16),
-              _cardShiftTodayWidget(
-                "Presensi Keluar",
-                Utils.typeShiftToString(TypeShift.shiftSore),
-                Utils.customShowJustTime(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!),
-              ),
-            ]
-          ],
-        ),
+        Obx(() {
+          var shiftPagi = controller.officeHoursFromDb.value?["pagi"];
+
+          int split(String val, bool pickFirst) {
+            if (val.contains(":")) {
+              var parts = val.split(":");
+              return int.parse(pickFirst ? parts.first : parts.last);
+            }
+            return int.parse(val); // return the original value if there is no colon
+          }
+
+          return Row(
+            children: [
+              if ((now.isBefore(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)))) || now.isBefore(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false)))) ...[
+                _cardShiftTodayWidget(
+                  "Presensi Masuk",
+                  Utils.typeShiftToString(TypeShift.shiftPagi),
+                  controller.officeHoursFromDb.value?["pagi"]["jamMasuk"],
+                ),
+                Utils.gapHorizontal(16),
+                _cardShiftTodayWidget(
+                  "Presensi Keluar",
+                  Utils.typeShiftToString(TypeShift.shiftPagi),
+                  controller.officeHoursFromDb.value?["pagi"]["jamKeluar"],
+                ),
+              ] else ...[
+                _cardShiftTodayWidget(
+                  "Presensi Masuk",
+                  Utils.typeShiftToString(TypeShift.shiftSore),
+                  controller.officeHoursFromDb.value?["sore"]["jamMasuk"],
+                ),
+                Utils.gapHorizontal(16),
+                _cardShiftTodayWidget(
+                  "Presensi Keluar",
+                  Utils.typeShiftToString(TypeShift.shiftSore),
+                  controller.officeHoursFromDb.value?["sore"]["jamKeluar"],
+                ),
+              ]
+            ],
+          );
+        }),
         Utils.gapVertical(16),
       ],
     );

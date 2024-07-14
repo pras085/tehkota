@@ -12,6 +12,54 @@ class CardPresenceDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<String> durasiStrings = [];
+    Duration totalDuration = const Duration();
+
+    String formatDuration(Duration duration) {
+      String twoDigits(int n) => n.toString().padLeft(2, '0');
+      String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+      return "${twoDigits(duration.inHours)} Jam $twoDigitMinutes Menit";
+    }
+
+    if (listPresence["lemburan"] != null) {
+      print(listPresence["lemburan"]);
+
+      List<String> keysInOrder = ["auto_masuk", "auto_keluar", "manual"];
+
+      for (String key in keysInOrder) {
+        if (listPresence["lemburan"].containsKey(key)) {
+          Map<String, dynamic> value = listPresence["lemburan"][key]!;
+          DateTime masuk = DateTime.parse(value['lembur_masuk']!);
+          DateTime keluar = DateTime.parse(value['lembur_keluar']!);
+
+          Duration durasi = keluar.difference(masuk);
+          totalDuration += durasi;
+
+          String formattedMasuk = "${masuk.hour.toString().padLeft(2, '0')}:${masuk.minute.toString().padLeft(2, '0')}";
+          String formattedKeluar = "${keluar.hour.toString().padLeft(2, '0')}:${keluar.minute.toString().padLeft(2, '0')}";
+          durasiStrings.add("$formattedMasuk - $formattedKeluar");
+        }
+      }
+    }
+    
+    List<Widget> durasiWidgets = [];
+    for (int i = 0; i < durasiStrings.length; i++) {
+      durasiWidgets.add(CustomText(
+        durasiStrings[i],
+        color: const Color(AppColor.colorGreen),
+        fontSize: 10,
+      ));
+      if (i < durasiStrings.length - 1) {
+        durasiWidgets.add(const CustomText(
+          ' | ',
+          color: Color(AppColor.colorGreen),
+          fontSize: 10,
+        )); // Pembatas di antara durasi
+      }
+    }
+
+    String totalDurationString = formatDuration(totalDuration);
+
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(12),
@@ -175,11 +223,26 @@ class CardPresenceDetail extends StatelessWidget {
                               color: Color(AppColor.colorDarkGrey),
                               fontSize: 10,
                             ),
-                            CustomText(
-                              listPresence["lembur_time"] != null ? "${listPresence["lembur_time"]} Menit" : "-",
-                              color: const Color(AppColor.colorGreen),
-                              fontSize: 10,
-                            ),
+                            if (durasiWidgets.isNotEmpty)
+                              Flexible(
+                                child: Wrap(
+                                  alignment: WrapAlignment.center,
+                                  children: [
+                                    ...durasiWidgets,
+                                    CustomText(
+                                      " = $totalDurationString",
+                                      color: const Color(AppColor.colorGreen),
+                                      fontSize: 10,
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              const CustomText(
+                                "-",
+                                color: Color(AppColor.colorGreen),
+                                fontSize: 10,
+                              ),
                           ],
                         ),
                       )

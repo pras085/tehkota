@@ -27,90 +27,285 @@ class SettingsView extends GetView<SettingsController> {
         appBar: CustomAppBar(
           title: "Settings",
         ),
-        body: controller.settings.value.isNotEmpty ? content() : const Center(child: CircularProgressIndicator()),
+        body: controller.valueDate.isNotEmpty && controller.dataAdmin.value.isNotEmpty ? content() : const Center(child: CircularProgressIndicator()),
       );
     });
   }
 
   Widget content() {
-    return Container(
-      width: Get.width,
-      height: Get.height,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
-            alignment: Alignment.center,
-            child: const CustomText(
-              "Perhitungan Gaji",
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Utils.gapVertical(16),
-          CustomTextFormField(
-            title: "Gaji per jam",
-            controller: controller.textFieldC[0],
-            hintText: "Contoh : 5000",
-            isOnlyNumber: true,
-          ),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                CustomTextFormField(
-                  title: "Gaji /6 jam",
-                  controller: controller.textFieldC[1],
-                  hintText: "Contoh : 5000",
-                  isOnlyNumber: true,
-                ),
-                SizedBox(width: 100),
-                CustomTextFormField(
-                  title: "Gaji /12 jam",
-                  controller: controller.textFieldC[2],
-                  hintText: "Contoh : 5000",
-                  isOnlyNumber: true,
-                ),
-              ],
-            ),
-          ),
-          CustomTextFormField(
-            title: "Lembur",
-            controller: controller.textFieldC[3],
-            hintText: "Contoh : 5000",
-            isOnlyNumber: true,
-          ),
-          CustomTextFormField(
-            title: "Potongan per 30 menit",
-            controller: controller.textFieldC[4],
-            hintText: "Contoh : 5000",
-            isOnlyNumber: true,
-          ),
-          const Spacer(),
-          if (controller.isEdit.value)
-            InkWell(
-              onTap: () {
-                controller.updateOnLocal();
-              },
-              child: Container(
-                width: Get.width,
-                decoration: BoxDecoration(
-                  color: const Color(AppColor.colorGreen),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.all(12),
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Container(
+        width: Get.width,
+        height: Get.height,
+        padding: const EdgeInsets.all(16),
+        child: Obx(() {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
                 alignment: Alignment.center,
                 child: const CustomText(
-                  "Simpan",
-                  color: Colors.white,
+                  "Admin Account",
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            )
-          else
-            const SizedBox(),
+              Utils.gapVertical(16),
+              CustomTextFormField(
+                title: "Email",
+                controller: controller.emailC,
+                hintText: "Email",
+              ),
+              CustomTextFormField(
+                title: "Password",
+                controller: controller.passC,
+                hintText: "Password",
+                isPassword: true,
+              ),
+              if (!controller.isVerifMode.value) ...[
+                CustomTextFormField(
+                  title: "Password Ulang",
+                  controller: controller.passConfirmC,
+                  hintText: "Password Ulang",
+                  isPassword: true,
+                ),
+              ],
+              GestureDetector(
+                onTap: () => controller.tapLoginButton(),
+                child: Container(
+                  width: Get.width,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(color: Color(AppColor.colorGreen), borderRadius: BorderRadius.all(Radius.circular(12))),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: CustomText(
+                    controller.isVerifMode.value ? "Verifikasi" : "Ubah",
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(AppColor.colorWhite),
+                  ),
+                ),
+              ),
+              Utils.gapVertical(24),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
+                alignment: Alignment.center,
+                child: const CustomText(
+                  "Jam Kerja",
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Utils.gapVertical(16),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
+                width: Get.width / 9,
+                alignment: Alignment.center,
+                child: const CustomText(
+                  "Pagi",
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Utils.gapVertical(16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  cardHours("Jam Masuk", controller.valueDate.value[0], () async {
+                    var res = await showTimePicker(
+                      builder: (context, childWidget) {
+                        return MediaQuery(
+                          data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
+                          child: childWidget!,
+                        );
+                      },
+                      context: Get.context!,
+                      initialTime: TimeOfDay.fromDateTime(controller.valueDate.value[0]),
+                      initialEntryMode: TimePickerEntryMode.inputOnly,
+                    );
+                    if (res != null) {
+                      controller.valueDate.value[0] = Utils.customDate(res.hour, res.minute);
+                      controller.valueDate.refresh();
+                      print(controller.valueDate.value[0]);
+                      controller.updateOnFirestore();
+                    }
+                  }),
+                  Utils.gapHorizontal(24),
+                  cardHours("Jam Keluar", controller.valueDate.value[1], () async {
+                    var res = await showTimePicker(
+                      builder: (context, childWidget) {
+                        return MediaQuery(
+                          data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
+                          child: childWidget!,
+                        );
+                      },
+                      context: Get.context!,
+                      initialTime: TimeOfDay.fromDateTime(controller.valueDate.value[1]),
+                      initialEntryMode: TimePickerEntryMode.inputOnly,
+                    );
+                    if (res != null) {
+                      controller.valueDate.value[1] = Utils.customDate(res.hour, res.minute);
+                      controller.valueDate.refresh();
+                      print(controller.valueDate.value[1]);
+                      controller.updateOnFirestore();
+                    }
+                  }),
+                ],
+              ),
+              Utils.gapVertical(16),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
+                width: Get.width / 9,
+                alignment: Alignment.center,
+                child: const CustomText(
+                  "Sore",
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Utils.gapVertical(16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  cardHours("Jam Masuk", controller.valueDate.value[2], () async {
+                    var res = await showTimePicker(
+                      builder: (context, childWidget) {
+                        return MediaQuery(
+                          data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
+                          child: childWidget!,
+                        );
+                      },
+                      context: Get.context!,
+                      initialTime: TimeOfDay.fromDateTime(controller.valueDate.value[2]),
+                      initialEntryMode: TimePickerEntryMode.inputOnly,
+                    );
+                    if (res != null) {
+                      controller.valueDate.value[2] = Utils.customDate(res.hour, res.minute);
+                      controller.valueDate.refresh();
+                      print(controller.valueDate.value[2]);
+                      controller.updateOnFirestore();
+                    }
+                  }),
+                  Utils.gapHorizontal(24),
+                  cardHours("Jam Keluar", controller.valueDate.value[3], () async {
+                    var res = await showTimePicker(
+                      builder: (context, childWidget) {
+                        return MediaQuery(
+                          data: MediaQuery.of(context).copyWith(textScaleFactor: 1),
+                          child: childWidget!,
+                        );
+                      },
+                      context: Get.context!,
+                      initialTime: TimeOfDay.fromDateTime(controller.valueDate.value[3]),
+                      initialEntryMode: TimePickerEntryMode.inputOnly,
+                    );
+                    if (res != null) {
+                      controller.valueDate.value[3] = Utils.customDate(res.hour, res.minute);
+                      controller.valueDate.refresh();
+                      print(controller.valueDate.value[3]);
+                      controller.updateOnFirestore();
+                    }
+                  })
+                ],
+              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+              //   children: [
+              //     CustomDateTimePickerField(
+              //       title: "Jam Masuk",
+              //       value: controller.valueDate.value[0],
+              //       hintText: "Masukkan jam masuk",
+              //     ),
+              //     SizedBox(width: 100),
+              //   ],
+              // ),
+              // CustomDateTimePickerField(
+              //   title: "Jam Keluar",
+              //   value: controller.valueDate.value[1],
+              //   hintText: "Masukkan jam keluar",
+              // ),
+              // Container(
+              //   padding: const EdgeInsets.all(8),
+              //   decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
+              //   width: Get.width / 9,
+              //   alignment: Alignment.center,
+              //   child: const CustomText(
+              //     "Pagi",
+              //     fontSize: 12,
+              //     fontWeight: FontWeight.w600,
+              //   ),
+              // ),
+              // Utils.gapVertical(16),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+              //   children: [
+              //     CustomDateTimePickerField(
+              //       title: "Jam Masuk",
+              //       value: controller.valueDate.value[0],
+              //       hintText: "Masukkan jam masuk",
+              //     ),
+              //     SizedBox(width: 100),
+              //     CustomDateTimePickerField(
+              //       title: "Jam Keluar",
+              //       value: controller.valueDate.value[1],
+              //       hintText: "Masukkan jam keluar",
+              //     ),
+              //   ],
+              // ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget cardHours(String title, DateTime value, VoidCallback onTap) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: const Color(AppColor.colorWhite),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                title,
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
+              Utils.gapHorizontal(4),
+              CustomText(
+                Utils.customShowJustTime(value),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ],
+          ),
+          Utils.gapHorizontal(8),
+          InkWell(
+            onTap: onTap,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(AppColor.colorLightGrey),
+                borderRadius: BorderRadiusDirectional.all(Radius.circular(4)),
+              ),
+              padding: const EdgeInsets.all(6),
+              child: const Icon(
+                Icons.edit,
+                size: 14,
+              ),
+            ),
+          )
         ],
       ),
     );

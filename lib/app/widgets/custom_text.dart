@@ -125,7 +125,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                     child: SizedBox(
                       height: 24,
                       width: 24,
-                      child: Icon(_showPass ? Icons.visibility : Icons.visibility_off),
+                      child: Icon(_showPass ? Icons.visibility_off : Icons.visibility),
                     ),
                   )
                 else

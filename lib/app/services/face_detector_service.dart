@@ -16,7 +16,7 @@ class FaceDetectorService {
   List<Face> get faces => _faces;
   bool get faceDetected => _faces.isNotEmpty;
 
-  void initialize() {
+  Future<void> initialize() async {
     // _faceDetector = GoogleMlKit.vision.faceDetector(
     //   FaceDetectorOptions(
     //     performanceMode: FaceDetectorMode.accurate,

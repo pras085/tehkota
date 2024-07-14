@@ -1,3 +1,4 @@
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,11 +11,13 @@ class HomeController extends GetxController {
   var listDataPresence = <Map<String, dynamic>>[].obs;
   PageController pageController = PageController(initialPage: 0, keepPage: true);
   var scrollC = ScrollController();
+  Rxn<Map<String, dynamic>> officeHoursFromDb = Rxn<Map<String, dynamic>>();
+  var isLemburPresence = false.obs;
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-    getDataFromApi();
+    await getDataFromApi();
   }
 
   @override
@@ -25,6 +28,7 @@ class HomeController extends GetxController {
   @override
   void onClose() {
     super.onClose();
+    isLemburPresence.value = false;
   }
 
   Future<void> getDataFromApi() async {
@@ -40,10 +44,18 @@ class HomeController extends GetxController {
     //     // "status": "0",
     //   },
     // );
+    var res = await firestore.getOfficeHours();
+    if (res.exists) {
+      officeHoursFromDb.value = res.data();
+      officeHoursFromDb.refresh();
+    }
+
     var resp = await firestore.getAllPresence();
     if (resp != null) {
       listDataPresence.value = resp;
+      // log("LIST PRESENCE : $resp");
     }
+
     listDataPresence.refresh();
     // print('PRESENCE : $listDataPresence');
   }

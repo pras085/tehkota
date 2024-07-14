@@ -204,6 +204,11 @@ class Utils {
     return customDate;
   }
 
+  static DateTime customDateNotNow(DateTime date, int hours, int minute) {
+    var customDate = DateTime(date.year, date.month, date.day, hours, minute);
+    return customDate;
+  }
+
   static String customShowJustTime(DateTime dateTime) {
     return DateFormat('HH:mm').format(dateTime);
   }
@@ -213,25 +218,25 @@ class Utils {
     return officeHourPicked;
   }
 
-  static Map<String, DateTime> officeHours(TypeShift typeShift) {
-    switch (typeShift) {
-      case TypeShift.shiftPagi:
-        return {
-          "login_presence": customDate(9, 0),
-          "logout_presence": customDate(15, 0),
-        };
-      case TypeShift.shiftSore:
-        return {
-          "login_presence": customDate(15, 0),
-          "logout_presence": customDate(21, 0),
-        };
-      case TypeShift.shiftFull:
-        return {
-          "login_presence": customDate(9, 0),
-          "logout_presence": customDate(21, 0),
-        };
-    }
-  }
+  // static Map<String, DateTime> officeHours(TypeShift typeShift) {
+  //   switch (typeShift) {
+  //     case TypeShift.shiftPagi:
+  //       return {
+  //         "login_presence": customDate(9, 0),
+  //         "logout_presence": customDate(15, 0),
+  //       };
+  //     case TypeShift.shiftSore:
+  //       return {
+  //         "login_presence": customDate(15, 0),
+  //         "logout_presence": customDate(21, 0),
+  //       };
+  //     case TypeShift.shiftFull:
+  //       return {
+  //         "login_presence": customDate(9, 0),
+  //         "logout_presence": customDate(21, 0),
+  //       };
+  //   }
+  // }
 
   static String formatTime(DateTime? dateTime) {
     if (dateTime == null) return "";
@@ -320,6 +325,25 @@ class Utils {
     } else {
       return Get.snackbar("Gagal", message, backgroundColor: const Color(AppColor.colorRed));
     }
+  }
+
+  static bool isTimeGreaterThan(String timeToCheck, String referenceTime) {
+    // Memisahkan jam dan menit dari timeToCheck
+    List<String> partsToCheck = timeToCheck.split(":");
+    int hourToCheck = int.parse(partsToCheck[0]);
+    int minuteToCheck = int.parse(partsToCheck[1]);
+
+    // Memisahkan jam dan menit dari referenceTime
+    List<String> partsReference = referenceTime.split(":");
+    int hourReference = int.parse(partsReference[0]);
+    int minuteReference = int.parse(partsReference[1]);
+
+    // Membuat Duration dari jam dan menit
+    Duration durationToCheck = Duration(hours: hourToCheck, minutes: minuteToCheck);
+    Duration durationReference = Duration(hours: hourReference, minutes: minuteReference);
+
+    // Membandingkan Duration
+    return durationToCheck > durationReference;
   }
 
   static Future<bool> showAlertDialog(BuildContext context, String message) async {

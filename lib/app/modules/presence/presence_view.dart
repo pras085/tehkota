@@ -4,10 +4,12 @@ import 'package:camera/camera.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
+import 'package:teh_kota/app/modules/home/home_controller.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/camera_detection_preview.dart';
 import 'package:teh_kota/app/widgets/custom_fab_button.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
+import 'package:teh_kota/app/widgets/lembur_bottom_sheet.dart';
 import 'package:teh_kota/app/widgets/single_picture.dart';
 import 'package:uuid/uuid.dart';
 
@@ -26,6 +28,7 @@ class PresenceView extends StatefulWidget {
 }
 
 class _PresenceViewState extends State<PresenceView> {
+  var homeC = Get.find<HomeController>();
   final CameraService _cameraService = locator<CameraService>();
   final FaceDetectorService _faceDetectorService = locator<FaceDetectorService>();
   final MLService _mlService = locator<MLService>();
@@ -50,6 +53,7 @@ class _PresenceViewState extends State<PresenceView> {
     _cameraService.dispose();
     _mlService.dispose();
     _faceDetectorService.dispose();
+    homeC.isLemburPresence.value = false;
     super.dispose();
   }
 
@@ -57,7 +61,7 @@ class _PresenceViewState extends State<PresenceView> {
     setState(() => _isInitializing = true);
     await _cameraService.initialize();
     await _mlService.initialize();
-    _faceDetectorService.initialize();
+    await _faceDetectorService.initialize();
     setState(() => _isInitializing = false);
     _frameFaces();
   }
@@ -96,6 +100,16 @@ class _PresenceViewState extends State<PresenceView> {
   }
 
   Future<void> onTap() async {
+    var shiftPagi = homeC.officeHoursFromDb.value?["pagi"];
+    var shiftSore = homeC.officeHoursFromDb.value?["sore"];
+    int split(String val, bool pickFirst) {
+      if (val.contains(":")) {
+        var parts = val.split(":");
+        return int.parse(pickFirst ? parts.first : parts.last);
+      }
+      return int.parse(val); // return the original value if there is no colon
+    }
+
     await takePicture();
     var docID = DateFormat("dd-MM-y").format(DateTime.now());
     if (_faceDetectorService.faceDetected) {
@@ -122,7 +136,52 @@ class _PresenceViewState extends State<PresenceView> {
               throw "ERROR resGetPresence";
             }
             presenceData.value = value.data()?[user.userID];
-            if ((presenceData.value ?? {}).containsKey("login_presence") && (presenceData.value ?? {}).containsKey("logout_presence")) {
+            if (homeC.isLemburPresence.value) {
+              // hitung lembur
+              Map lemburTime = presenceData.value?["lemburan"] ?? {};
+              var now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute);
+              if (!((presenceData.value ?? {}).containsKey("lemburan"))) {
+                if (presenceData.value?["shift"] == "0") {
+                  lemburTime.putIfAbsent("manual", () => {"lembur_masuk": now.toString()});
+                  if (lemburTime.isNotEmpty) {
+                    print("lembur : $lemburTime");
+                    body?.putIfAbsent("lemburan", () => lemburTime);
+                  }
+                } else {
+                  lemburTime.putIfAbsent("manual", () => {"lembur_masuk": now.toString()});
+                  if (lemburTime.isNotEmpty) {
+                    print("lembur : $lemburTime");
+                    body?.putIfAbsent("lemburan", () => lemburTime);
+                  }
+                }
+              } else if ((presenceData.value ?? {}).containsKey("lemburan") && ((presenceData.value ?? {})["lemburan"] as Map).containsKey("manual") && !((presenceData.value?["lemburan"]["manual"] as Map).containsKey("lembur_keluar"))) {
+                if (presenceData.value?["shift"] == "0") {
+                  (lemburTime["manual"] as Map).putIfAbsent("lembur_keluar", () => now.toString());
+                  if (lemburTime.isNotEmpty) {
+                    print("lembur : $lemburTime");
+                    body?.putIfAbsent("lemburan", () => lemburTime);
+                  }
+                } else {
+                  (lemburTime["manual"] as Map).putIfAbsent("lembur_keluar", () => now.toString());
+                  if (lemburTime.isNotEmpty) {
+                    print("lembur : $lemburTime");
+                    body?.putIfAbsent("lemburan", () => lemburTime);
+                  }
+                }
+              } else if (((presenceData.value?["lemburan"]["manual"] as Map).containsKey("lembur_keluar")) && ((presenceData.value?["lemburan"]["manual"] as Map).containsKey("lembur_masuk"))) {
+                body = presenceData.value;
+              }
+              var resLogout = await firestore.addPresence(
+                docID,
+                body,
+                body?["userID"],
+              );
+              if (resLogout) {
+                if ((presenceData.value ?? {}).containsKey("status")) {
+                  body?.putIfAbsent("status", () => presenceData.value?["status"]);
+                }
+              }
+            } else if ((presenceData.value ?? {}).containsKey("login_presence") && (presenceData.value ?? {}).containsKey("logout_presence")) {
               body?.putIfAbsent("login_presence", () => presenceData.value?['login_presence']);
               body?.putIfAbsent("logout_presence", () => presenceData.value?['login_presence']);
             } else if (!((presenceData.value ?? {}).containsKey("login_presence"))) {
@@ -142,29 +201,54 @@ class _PresenceViewState extends State<PresenceView> {
                 body?.putIfAbsent("shift", () => presenceData.value?["shift"]);
               }
               // hitung lembur
-              Duration lemburTime = const Duration();
+              Map lemburTime = {};
               var now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute);
               if (body?["shift"] == "0") {
-                if (now.isBefore(Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!)) {
-                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftPagi)["login_presence"]!.difference(now);
+                // lembur by sistem ketika presence keluar
+                if (now.isAfter(Utils.customDate(split(shiftPagi["jamKeluar"], true), split(shiftPagi["jamKeluar"], false)))) {
+                  lemburTime.putIfAbsent("auto_keluar", () {
+                    return {
+                      "lembur_keluar": now.toString(),
+                      "lembur_masuk": Utils.customDate(split(shiftPagi["jamKeluar"], true), split(shiftPagi["jamKeluar"], false)).toString(),
+                    };
+                  });
                 }
-                if (now.isAfter(Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!)) {
-                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftPagi)["logout_presence"]!.difference(now);
+                // lembur by sistem ketika presence masuk
+                if (DateTime.parse(presenceData.value?['login_presence']).isBefore(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)))) {
+                  lemburTime.putIfAbsent("auto_masuk", () {
+                    return {
+                      "lembur_masuk": presenceData.value?['login_presence'].toString(),
+                      "lembur_keluar": Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)).toString(),
+                    };
+                  });
                 }
-                if (lemburTime.inMinutes != 0) {
-                  print("lembur : ${lemburTime.inMinutes}");
-                  body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+                if (lemburTime.isNotEmpty) {
+                  print("lembur : $lemburTime");
+                  body?.putIfAbsent("lemburan", () => lemburTime);
                 }
               } else {
-                if (now.isBefore(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
-                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftSore)["login_presence"]!.difference(now);
+                // lembur by sistem ketika presence keluar
+                if (now.isAfter(Utils.customDate(split(shiftSore["jamKeluar"], true), split(shiftSore["jamKeluar"], false)))) {
+                  lemburTime.putIfAbsent("auto_keluar", () {
+                    return {
+                      "lembur_keluar": now.toString(),
+                      "lembur_masuk": Utils.customDate(split(shiftSore["jamKeluar"], true), split(shiftSore["jamKeluar"], false)).toString(),
+                    };
+                  });
                 }
-                if (now.isAfter(Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!)) {
-                  lemburTime = lemburTime + Utils.officeHours(TypeShift.shiftSore)["logout_presence"]!.difference(now);
+                // lembur by sistem ketika presence masuk
+                if (DateTime.parse(presenceData.value?['login_presence']).isBefore(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false)))) {
+                  lemburTime.putIfAbsent("auto_masuk", () {
+                    return {
+                      "lembur_masuk": presenceData.value?['login_presence'].toString(),
+                      "lembur_keluar": Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false)).toString(),
+                    };
+                  });
                 }
-                if (lemburTime.inMinutes != 0) {
-                  print("lembur : ${lemburTime.inMinutes}");
-                  body?.putIfAbsent("lembur_time", () => lemburTime.inMinutes.toString());
+
+                if (lemburTime.isNotEmpty) {
+                  print("lembur : $lemburTime");
+                  body?.putIfAbsent("lemburan", () => lemburTime);
                 }
               }
               var resLogout = await firestore.addPresence(
@@ -180,16 +264,16 @@ class _PresenceViewState extends State<PresenceView> {
             }
           }).catchError((error) {
             print('Error getPresence: $error');
-          }).whenComplete(() {
+          }).whenComplete(() async {
             bottomSheetController = scaffoldKey.currentState!.showBottomSheet(
               (context) {
                 body?.putIfAbsent("docID", () => docID);
-                return signInSheet(user: user, body: body);
+                return signInSheet(user: user, body: homeC.isLemburPresence.value ? presenceData.value : body);
               },
               backgroundColor: Colors.transparent,
               enableDrag: false,
             );
-            bottomSheetController?.closed.whenComplete(_reload);
+            await bottomSheetController?.closed.whenComplete(_reload);
           });
         } catch (e) {
           print('$e');
@@ -238,16 +322,18 @@ class _PresenceViewState extends State<PresenceView> {
       width: Get.width,
       padding: const EdgeInsets.all(16),
       child: Row(
-        children: const [
-          Expanded(
-            child: CustomText(
-              "Presensi",
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              textAlign: TextAlign.center,
-              color: Colors.white,
-            ),
-          ),
+        children: [
+          Obx(() {
+            return Expanded(
+              child: CustomText(
+                homeC.isLemburPresence.value ? "Presensi Lembur" : "Presensi",
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
+                color: Colors.white,
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -260,6 +346,12 @@ class _PresenceViewState extends State<PresenceView> {
         statusPresence: 2,
       );
     } else {
+      if (homeC.isLemburPresence.value) {
+        return LemburBottomSheet(
+          user: user,
+          listPresence: body,
+        );
+      }
       return PresenceBottomSheet(
         user: user,
         listPresence: body,

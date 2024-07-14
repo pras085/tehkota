@@ -1,4 +1,8 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get/get.dart';
+import 'package:teh_kota/app/modules/home/home_controller.dart';
 import 'package:uuid/uuid.dart';
 
 import '../utils/utils.dart';
@@ -33,6 +37,45 @@ class CloudFirestoreService {
     return db.collection('admin').doc('default').get();
   }
 
+  // get `jam - admin` collection's documents
+  Future<DocumentSnapshot<Map<String, dynamic>>> getOfficeHours() {
+    return db.collection('admin').doc('jam').get();
+  }
+
+  Future<void> updateOfficeHours(Map<String, dynamic> newValue) async {
+    try {
+      // Ambil dokumen spesifik dari koleksi 'users'
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('admin').doc("jam").get();
+
+      // Cek jika dokumen ditemukan
+      if (snapshot.exists) {
+        // Ambil data dari dokumen
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+
+        if (data.containsKey("pagi")) {
+          data["pagi"]["jamMasuk"] = newValue["pagi"]["jamMasuk"];
+          data["pagi"]["jamKeluar"] = newValue["pagi"]["jamKeluar"];
+        }
+        if (data.containsKey("sore")) {
+          data["sore"]["jamMasuk"] = newValue["sore"]["jamMasuk"];
+          data["sore"]["jamKeluar"] = newValue["sore"]["jamKeluar"];
+        }
+        // Update dokumen di Firestore
+        await snapshot.reference.update(data).whenComplete(() {
+          return Utils.showToast(TypeToast.success, 'Update selesai.');
+        }).onError((error, stackTrace) {
+          throw "$error";
+        });
+
+        // print('User $userID updated in document with ID ${doc.id}');
+      } else {
+        Utils.showToast(TypeToast.error, 'Data does not exist.');
+      }
+    } catch (e) {
+      Utils.showToast(TypeToast.error, '$e');
+    }
+  }
+
   Future<bool> addPresence(String dateTimeNow, Map<String, dynamic>? data, String userID) async {
     if (data == null) return false;
     try {
@@ -51,6 +94,19 @@ class CloudFirestoreService {
       return true;
     } catch (error) {
       print("Failed to addPresence : $error");
+      return false;
+    }
+  }
+
+  Future<bool> updateAdmin(String email, String password) async {
+    try {
+      await db.collection('admin').doc("default").set({
+        "email": email,
+        "password": password,
+      }, SetOptions(merge: true)); // Tunggu hingga proses selesai
+      return true;
+    } catch (error) {
+      print("Failed to updateAdmin : $error");
       return false;
     }
   }
@@ -89,8 +145,28 @@ class CloudFirestoreService {
 
   // get all `presence` collection's documents
   Future<List<Map<String, dynamic>>?> getAllPresence() async {
+    int split(String val, bool pickFirst) {
+      if (val.contains(":")) {
+        var parts = val.split(":");
+        return int.parse(pickFirst ? parts.first : parts.last);
+      }
+      return int.parse(val); // return the original value if there is no colon
+    }
+
     List<Map<String, dynamic>>? listPresence;
+    Rxn<Map<String, dynamic>> officeHoursFromDb = Rxn<Map<String, dynamic>>();
     try {
+      var res = await getOfficeHours();
+      if (res.exists) {
+        officeHoursFromDb.value = res.data();
+        officeHoursFromDb.refresh();
+        print(officeHoursFromDb.value);
+      } else {
+        throw "Error";
+      }
+
+      var shiftPagi = officeHoursFromDb.value?["pagi"];
+      var shiftSore = officeHoursFromDb.value?["sore"];
       QuerySnapshot querySnapshot = await db.collection('presence').get();
       listPresence = [];
       // querySnapshot.docs.forEach((doc) {
@@ -105,15 +181,38 @@ class CloudFirestoreService {
           // Iterasi melalui setiap user di dalam dokumen
           Map<String, dynamic> docData = doc.data() as Map<String, dynamic>;
 
-          docData.forEach((key, value) {
-            // Ambil data dari Map<Map> dan tambahkan field docID
-            Map<String, dynamic> presenceData = {
-              ...value,
-            };
+          // log("LIST PRESENCE : $docData");
+          // Iterasi melalui setiap user di dalam dokumen
+          docData.forEach((userID, presenceData) async {
+            // Cek jika tidak ada logout_presence, tambahkan atau perbarui dengan login_presence
+            if (!presenceData.containsKey('logout_presence')) {
+              var shiftUser = Utils.specifyTypeShift(int.parse(presenceData["shift"]));
+              var absenMasuk = DateTime.parse(presenceData["login_presence"]);
+              var absenKeluar = DateTime.parse(presenceData["login_presence"]); // sementara diisi ini dulu, baru diganti jamnya dan minutenya
+              if (shiftUser == TypeShift.shiftPagi) {
+                absenKeluar = Utils.customDateNotNow(absenMasuk, split(shiftPagi["jamKeluar"], true), split(shiftPagi["jamKeluar"], false));
+                // if (DateTime.now().difference(DateTime.parse(presenceData['login_presence'])).inHours > 12) {
+                if (DateTime.now().difference(Utils.customDate(split(shiftPagi["jamKeluar"], true), split(shiftPagi["jamKeluar"], false))).inMinutes > 5) {
+                  // print("$shiftUser" " $absenKeluar");
+                  await db.collection('presence').doc(doc.id).update({'$userID.logout_presence': absenKeluar.toString()});
+                  // Update value in memory
+                  presenceData['logout_presence'] = absenKeluar.toString();
+                }
+              } else {
+                absenKeluar = Utils.customDateNotNow(absenMasuk, split(shiftSore["jamKeluar"], true), split(shiftSore["jamKeluar"], false));
+                if (DateTime.now().difference(Utils.customDate(split(shiftSore["jamKeluar"], true), split(shiftSore["jamKeluar"], false))).inMinutes > 5) {
+                  // print("$shiftUser" " $absenKeluar");
+                  await db.collection('presence').doc(doc.id).update({'$userID.logout_presence': absenKeluar.toString()});
+                  // Update value in memory
+                  presenceData['logout_presence'] = absenKeluar.toString();
+                }
+              }
+            }
+
+            // Tambahkan data presensi ke listPresence
             listPresence?.add(presenceData);
           });
         }
-
         // Sorting berdasarkan login_presence descending (terbaru ke terlama)
         listPresence.sort((a, b) {
           var loginPresenceA = DateTime.parse(a['login_presence']);
@@ -122,7 +221,7 @@ class CloudFirestoreService {
         });
       }
 
-      // print("LIST PRESENCE : $listPresence");
+      // log("LIST PRESENCE : $listPresence");
     } catch (e) {
       print("Error fetching presence data: $e");
     }
