@@ -28,7 +28,8 @@ class HistoryView extends GetView<HistoryController> {
             width: Get.width,
             child: Column(
               children: [
-                Obx(()=> Row(
+                Obx(
+                  () => Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (!Utils.isAdmin.value)
@@ -121,7 +122,8 @@ class HistoryView extends GetView<HistoryController> {
                 child: (controller.listDataPresence.isEmpty)
                     ? Container(
                         width: Get.width,
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 20),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -142,7 +144,8 @@ class HistoryView extends GetView<HistoryController> {
                         itemBuilder: (context, i) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: CardPresenceDetail(controller.listDataPresence[i]),
+                            child: CardPresenceDetail(
+                                controller.listDataPresence[i]),
                           );
                         },
                       ),

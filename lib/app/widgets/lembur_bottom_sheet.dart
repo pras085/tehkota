@@ -33,7 +33,6 @@ class _LemburBottomSheetState extends State<LemburBottomSheet> {
   @override
   void initState() {
     super.initState();
-
     setState(() {
       body.value = widget.listPresence;
       body.refresh();
@@ -57,21 +56,38 @@ class _LemburBottomSheetState extends State<LemburBottomSheet> {
     var isCanPresensiLembur = false;
     if (widget.listPresence?["shift"] == "0") {
       // if ( DateTime.now().hour > split(shiftPagi["jamKeluar"], true)) {
-      if (Utils.isTimeGreaterThan(Utils.customShowJustTime(DateTime.now()), Utils.customShowJustTime(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false))).toString())) {
+      if (Utils.isTimeGreaterThan(
+          Utils.customShowJustTime(DateTime.now()),
+          Utils.customShowJustTime(Utils.customDate(
+                  split(shiftPagi["jamMasuk"], true),
+                  split(shiftPagi["jamMasuk"], false)))
+              .toString())) {
         isCanPresensiLembur = true;
       }
     } else {
-      if (Utils.isTimeGreaterThan(Utils.customShowJustTime(DateTime.now()), Utils.customShowJustTime(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false))).toString())) {
+      if (Utils.isTimeGreaterThan(
+          Utils.customShowJustTime(DateTime.now()),
+          Utils.customShowJustTime(Utils.customDate(
+                  split(shiftSore["jamMasuk"], true),
+                  split(shiftSore["jamMasuk"], false)))
+              .toString())) {
         isCanPresensiLembur = true;
       }
     }
     if (isCanPresensiLembur && widget.statusPresence == 1) {
       if (widget.listPresence != null) {
         if (!widget.listPresence!.containsKey("lemburan")) {
-          typePresence.value = 1; // pengecekan untuk menampilkan tampilan presensi masuk
-        } else if (widget.listPresence!.containsKey("lemburan") && widget.listPresence!['lemburan']["manual"]["lembur_keluar"] == null) {
-          typePresence.value = 2; // pengecekan untuk menampilkan tampilan presensi keluar
-        } else if (((widget.listPresence!["lemburan"]["manual"] as Map).containsKey("lembur_keluar")) && ((widget.listPresence!["lemburan"]["manual"] as Map).containsKey("lembur_masuk"))) {
+          typePresence.value =
+              1; // pengecekan untuk menampilkan tampilan presensi masuk
+        } else if (widget.listPresence!.containsKey("lemburan") &&
+            widget.listPresence!['lemburan']["manual"]["lembur_keluar"] ==
+                null) {
+          typePresence.value =
+              2; // pengecekan untuk menampilkan tampilan presensi keluar
+        } else if (((widget.listPresence!["lemburan"]["manual"] as Map)
+                .containsKey("lembur_keluar")) &&
+            ((widget.listPresence!["lemburan"]["manual"] as Map)
+                .containsKey("lembur_masuk"))) {
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
             alignment: Alignment.center,
@@ -132,7 +148,9 @@ class _LemburBottomSheetState extends State<LemburBottomSheet> {
                 SvgPicture.asset("assets/ic_berhasil.svg"),
                 Utils.gapVertical(16),
                 CustomText(
-                  "Presensi Lembur " "${typePresence.value == 1 ? "Masuk" : "Keluar"}" " Berhasil",
+                  "Presensi Lembur "
+                  "${typePresence.value == 1 ? "Masuk" : "Keluar"}"
+                  " Berhasil",
                   fontSize: 20,
                   color: const Color(AppColor.colorGreen),
                   fontWeight: FontWeight.w600,
@@ -176,17 +194,29 @@ class _LemburBottomSheetState extends State<LemburBottomSheet> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  typePresence.value == 1 ? "Jam Masuk" : "Jam Keluar",
+                                  typePresence.value == 1
+                                      ? "Jam Masuk"
+                                      : "Jam Keluar",
                                   color: const Color(AppColor.colorDarkGrey),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
                                 ),
                                 Utils.gapVertical(8),
                                 CustomText(
-                                  (body.value?["lemburan"]["manual"]["lembur_masuk"] != null && typePresence.value == 1)
-                                      ? Utils.formatTime(DateTime.tryParse(body.value?["lemburan"]["manual"]["lembur_masuk"]))
-                                      : (body.value?["lemburan"]["manual"]["lembur_keluar"] != null && typePresence.value == 2)
-                                          ? Utils.formatTime(DateTime.tryParse(body.value?["lemburan"]["manual"]["lembur_keluar"]))
+                                  (body.value?["lemburan"]["manual"]
+                                                  ["lembur_masuk"] !=
+                                              null &&
+                                          typePresence.value == 1)
+                                      ? Utils.formatTime(DateTime.tryParse(
+                                          body.value?["lemburan"]["manual"]
+                                              ["lembur_masuk"]))
+                                      : (body.value?["lemburan"]["manual"]
+                                                      ["lembur_keluar"] !=
+                                                  null &&
+                                              typePresence.value == 2)
+                                          ? Utils.formatTime(DateTime.tryParse(
+                                              body.value?["lemburan"]["manual"]
+                                                  ["lembur_keluar"]))
                                           : "-",
                                   color: const Color(AppColor.colorBlackNormal),
                                   fontSize: 14,
@@ -212,7 +242,12 @@ class _LemburBottomSheetState extends State<LemburBottomSheet> {
                               Utils.gapVertical(8),
                               Obx(() {
                                 return CustomText(
-                                  (body.value != null && body.value!["shift"] != null) ? Utils.typeShiftToString(Utils.specifyTypeShift(int.parse(body.value!["shift"]))) : "-",
+                                  (body.value != null &&
+                                          body.value!["shift"] != null)
+                                      ? Utils.typeShiftToString(
+                                          Utils.specifyTypeShift(
+                                              int.parse(body.value!["shift"])))
+                                      : "-",
                                   color: const Color(AppColor.colorBlackNormal),
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,

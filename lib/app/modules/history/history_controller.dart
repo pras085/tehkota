@@ -8,6 +8,7 @@ class HistoryController extends GetxController {
   CloudFirestoreService firestore = CloudFirestoreService();
   RefreshController refreshC = RefreshController();
   var listDataPresence = <Map<String, dynamic>>[].obs;
+  var listDataPresenceBackup = <Map<String, dynamic>>[].obs;
   DateTime? selectedDate;
   var searchC = TextEditingController();
 
@@ -30,16 +31,26 @@ class HistoryController extends GetxController {
 
   Future<void> getDataFromApi(String? docID, {String? searchName}) async {
     listDataPresence.clear();
+    listDataPresenceBackup.clear();
     if (docID == null) return;
-    List<Map<String, dynamic>>? resp = await firestore.getSpesificPresence(docID);
+    List<Map<String, dynamic>>? resp =
+        await firestore.getSpesificPresence(docID);
     if (resp != null) {
+      listDataPresenceBackup.addAll(resp);
       listDataPresence.addAll(resp);
     }
     // Jika ada searchName yang diberikan, lakukan filtering berdasarkan userName
     if (searchName != null) {
-      List<Map<String, dynamic>> filteredData = listDataPresence.where((entry) => entry['userName'] == searchName).toList();
-      listDataPresence.clear(); // Kosongkan listDataPresence sebelum menambahkan hasil filter
-      listDataPresence.addAll(filteredData); // Tambahkan hasil filter ke listDataPresence
+      List<Map<String, dynamic>> filteredData = listDataPresence
+          .where((entry) => entry['userName']
+              .toString()
+              .toLowerCase()
+              .contains(searchName.toLowerCase()))
+          .toList();
+      listDataPresence
+          .clear(); // Kosongkan listDataPresence sebelum menambahkan hasil filter
+      listDataPresence
+          .addAll(filteredData); // Tambahkan hasil filter ke listDataPresence
     }
     listDataPresence.refresh();
   }

@@ -1,15 +1,18 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:teh_kota/app/data/cloud_firestore_service.dart';
 import 'package:teh_kota/app/modules/home/home_controller.dart';
+import 'package:teh_kota/app/utils/app_colors.dart';
 import 'package:teh_kota/app/utils/utils.dart';
 import 'package:teh_kota/app/widgets/camera_detection_preview.dart';
 import 'package:teh_kota/app/widgets/custom_fab_button.dart';
 import 'package:teh_kota/app/widgets/custom_text.dart';
-import 'package:teh_kota/app/widgets/lembur_bottom_sheet.dart';
 import 'package:teh_kota/app/widgets/single_picture.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,7 +33,8 @@ class PresenceView extends StatefulWidget {
 class _PresenceViewState extends State<PresenceView> {
   var homeC = Get.find<HomeController>();
   final CameraService _cameraService = locator<CameraService>();
-  final FaceDetectorService _faceDetectorService = locator<FaceDetectorService>();
+  final FaceDetectorService _faceDetectorService =
+      locator<FaceDetectorService>();
   final MLService _mlService = locator<MLService>();
 
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
@@ -68,7 +72,8 @@ class _PresenceViewState extends State<PresenceView> {
 
   _frameFaces() async {
     bool processing = false;
-    _cameraService.cameraController!.startImageStream((CameraImage image) async {
+    _cameraService.cameraController!
+        .startImageStream((CameraImage image) async {
       if (processing) return; // prevents unnecessary overprocessing.
       processing = true;
       await _predictFacesFromImage(image: image);
@@ -86,11 +91,16 @@ class _PresenceViewState extends State<PresenceView> {
   }
 
   Future<void> takePicture() async {
+    // await _cameraService.takePicture();
+    // setState(() => _isPictureTaken = true);
     if (_faceDetectorService.faceDetected) {
       await _cameraService.takePicture();
       setState(() => _isPictureTaken = true);
     } else {
-      showDialog(context: context, builder: (context) => const AlertDialog(content: Text('No face detected!')));
+      showDialog(
+          context: context,
+          builder: (context) =>
+              const AlertDialog(content: Text('No face detected!')));
     }
   }
 
@@ -115,6 +125,7 @@ class _PresenceViewState extends State<PresenceView> {
     if (_faceDetectorService.faceDetected) {
       _isInitializing = true;
       User? user = await _mlService.predict();
+      // User? user = User(userName: "Aisyah", userID: "EMP-f30f4");
       Map<String, dynamic>? body;
       if (user != null) {
         try {
@@ -123,6 +134,7 @@ class _PresenceViewState extends State<PresenceView> {
             "id": const Uuid().v4(),
             "userID": user.userID,
             "userName": user.userName,
+            "docID": docID,
           };
           var res = await firestore.addPresence(docID, body, user.userID ?? "");
           if (!res) {
@@ -131,164 +143,60 @@ class _PresenceViewState extends State<PresenceView> {
           }
 
           await firestore.getPresence(docID)?.then((value) async {
+            int typePresence = 1;
             // todo sampai sini
             if (!value.exists) {
               throw "ERROR resGetPresence";
             }
             presenceData.value = value.data()?[user.userID];
-            if (homeC.isLemburPresence.value) {
-              // hitung lembur
-              Map lemburTime = presenceData.value?["lemburan"] ?? {};
-              var now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute);
-              if (!((presenceData.value ?? {}).containsKey("lemburan"))) {
-                if (presenceData.value?["shift"] == "0") {
-                  lemburTime.putIfAbsent("manual", () => {"lembur_masuk": now.toString()});
-                  if (lemburTime.isNotEmpty) {
-                    print("lembur : $lemburTime");
-                    body?.putIfAbsent("lemburan", () => lemburTime);
-                  }
+
+            if (!(presenceData.value ?? {}).containsKey("login_presence")) {
+              typePresence = 1;
+            } else if (!(presenceData.value ?? {})
+                .containsKey("logout_presence")) {
+              typePresence = 2;
+            } else if ((presenceData.value ?? {}).containsKey("lemburan")) {
+              if (((presenceData.value?["lemburan"] as Map)
+                  .containsKey("manual"))) {
+                if (!((presenceData.value?["lemburan"]["manual"] as Map)
+                    .containsKey("lembur_masuk"))) {
+                  typePresence = 3;
+                } else if (!((presenceData.value?["lemburan"]["manual"] as Map)
+                    .containsKey("lembur_keluar"))) {
+                  typePresence = 4;
                 } else {
-                  lemburTime.putIfAbsent("manual", () => {"lembur_masuk": now.toString()});
-                  if (lemburTime.isNotEmpty) {
-                    print("lembur : $lemburTime");
-                    body?.putIfAbsent("lemburan", () => lemburTime);
-                  }
-                }
-              } else if ((presenceData.value ?? {}).containsKey("lemburan") && ((presenceData.value ?? {})["lemburan"] as Map).containsKey("manual") && !((presenceData.value?["lemburan"]["manual"] as Map).containsKey("lembur_keluar"))) {
-                if (presenceData.value?["shift"] == "0") {
-                  (lemburTime["manual"] as Map).putIfAbsent("lembur_keluar", () => now.toString());
-                  if (lemburTime.isNotEmpty) {
-                    print("lembur : $lemburTime");
-                    body?.putIfAbsent("lemburan", () => lemburTime);
-                  }
-                } else {
-                  (lemburTime["manual"] as Map).putIfAbsent("lembur_keluar", () => now.toString());
-                  if (lemburTime.isNotEmpty) {
-                    print("lembur : $lemburTime");
-                    body?.putIfAbsent("lemburan", () => lemburTime);
-                  }
-                }
-              } else if (((presenceData.value?["lemburan"]["manual"] as Map).containsKey("lembur_keluar")) && ((presenceData.value?["lemburan"]["manual"] as Map).containsKey("lembur_masuk"))) {
-                body = presenceData.value;
-              }
-              var resLogout = await firestore.addPresence(
-                docID,
-                body,
-                body?["userID"],
-              );
-              if (resLogout) {
-                if ((presenceData.value ?? {}).containsKey("status")) {
-                  body?.putIfAbsent("status", () => presenceData.value?["status"]);
-                }
-              }
-            } else if ((presenceData.value ?? {}).containsKey("login_presence") && (presenceData.value ?? {}).containsKey("logout_presence")) {
-              body?.putIfAbsent("login_presence", () => presenceData.value?['login_presence']);
-              body?.putIfAbsent("logout_presence", () => presenceData.value?['login_presence']);
-            } else if (!((presenceData.value ?? {}).containsKey("login_presence"))) {
-              // buat baru (presensi masuk)
-              var resLogin = await firestore.addPresence(
-                docID,
-                {"login_presence": DateTime.now().toLocal().toString()},
-                body?["userID"],
-              );
-              if (resLogin) {
-                body?.putIfAbsent("login_presence", () => DateTime.now().toLocal().toString());
-              }
-            } else if (!((presenceData.value ?? {}).containsKey("logout_presence"))) {
-              // (presensi keluar)
-              body?.putIfAbsent("logout_presence", () => DateTime.now().toLocal().toString());
-              if ((presenceData.value ?? {}).containsKey("shift")) {
-                body?.putIfAbsent("shift", () => presenceData.value?["shift"]);
-              }
-              // hitung lembur
-              Map lemburTime = {};
-              var now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, DateTime.now().hour, DateTime.now().minute);
-              if (body?["shift"] == "0") {
-                // lembur by sistem ketika presence keluar
-                if (now.isAfter(Utils.customDate(split(shiftPagi["jamKeluar"], true), split(shiftPagi["jamKeluar"], false)))) {
-                  lemburTime.putIfAbsent("auto_keluar", () {
-                    return {
-                      "lembur_keluar": now.toString(),
-                      "lembur_masuk": Utils.customDate(split(shiftPagi["jamKeluar"], true), split(shiftPagi["jamKeluar"], false)).toString(),
-                    };
-                  });
-                }
-                // lembur by sistem ketika presence masuk
-                if (DateTime.parse(presenceData.value?['login_presence']).isBefore(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)))) {
-                  lemburTime.putIfAbsent("auto_masuk", () {
-                    return {
-                      "lembur_masuk": presenceData.value?['login_presence'].toString(),
-                      "lembur_keluar": Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)).toString(),
-                    };
-                  });
-                }
-                if (lemburTime.isNotEmpty) {
-                  print("lembur : $lemburTime");
-                  body?.putIfAbsent("lemburan", () => lemburTime);
+                  typePresence = 6;
                 }
               } else {
-                // lembur by sistem ketika presence keluar
-                if (now.isAfter(Utils.customDate(split(shiftSore["jamKeluar"], true), split(shiftSore["jamKeluar"], false)))) {
-                  lemburTime.putIfAbsent("auto_keluar", () {
-                    return {
-                      "lembur_keluar": now.toString(),
-                      "lembur_masuk": Utils.customDate(split(shiftSore["jamKeluar"], true), split(shiftSore["jamKeluar"], false)).toString(),
-                    };
-                  });
-                }
-                // lembur by sistem ketika presence masuk
-                if (DateTime.parse(presenceData.value?['login_presence']).isBefore(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false)))) {
-                  lemburTime.putIfAbsent("auto_masuk", () {
-                    return {
-                      "lembur_masuk": presenceData.value?['login_presence'].toString(),
-                      "lembur_keluar": Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false)).toString(),
-                    };
-                  });
-                }
-
-                if (lemburTime.isNotEmpty) {
-                  print("lembur : $lemburTime");
-                  body?.putIfAbsent("lemburan", () => lemburTime);
-                }
+                typePresence = 3;
               }
-              var resLogout = await firestore.addPresence(
-                docID,
-                body,
-                body?["userID"],
-              );
-              if (resLogout) {
-                if ((presenceData.value ?? {}).containsKey("status")) {
-                  body?.putIfAbsent("status", () => presenceData.value?["status"]);
-                }
-              }
+            } else {
+              typePresence = 3;
             }
+            showBottomSheetPresence(
+                user: user,
+                body: presenceData.value,
+                typePresence: typePresence);
           }).catchError((error) {
             print('Error getPresence: $error');
-          }).whenComplete(() async {
-            bottomSheetController = scaffoldKey.currentState!.showBottomSheet(
-              (context) {
-                body?.putIfAbsent("docID", () => docID);
-                return signInSheet(user: user, body: homeC.isLemburPresence.value ? presenceData.value : body);
-              },
-              backgroundColor: Colors.transparent,
-              enableDrag: false,
-            );
-            await bottomSheetController?.closed.whenComplete(_reload);
           });
         } catch (e) {
           print('$e');
-          Utils.showToast(TypeToast.error, "Terjadi Kesalahan!, Silakan Coba Lagi");
+          Utils.showToast(
+              TypeToast.error, "Terjadi Kesalahan!, Silakan Coba Lagi");
           return;
         }
       } else {
         _isInitializing = false;
-        Utils.showToast(TypeToast.error, "Wajah tidak terdaftar, silahkan coba lagi !");
+        Utils.showToast(
+            TypeToast.error, "Wajah tidak terdaftar, silahkan coba lagi !");
       }
     }
   }
 
   Widget getBodyWidget() {
-    if (_isInitializing) return const Center(child: CircularProgressIndicator());
+    if (_isInitializing)
+      return const Center(child: CircularProgressIndicator());
     if (_isPictureTaken) {
       return SinglePicture(imagePath: _cameraService.imagePath!);
     }
@@ -339,23 +247,614 @@ class _PresenceViewState extends State<PresenceView> {
     );
   }
 
-  Widget signInSheet({required User? user, Map<String, dynamic>? body}) {
-    if (user == null) {
-      return PresenceBottomSheet(
-        user: user,
-        statusPresence: 2,
-      );
-    } else {
-      if (homeC.isLemburPresence.value) {
-        return LemburBottomSheet(
-          user: user,
-          listPresence: body,
-        );
+  void showBottomSheetPresence(
+      {required User? user,
+      Map<String, dynamic>? body,
+      required int typePresence}) {
+    var shiftPagi = homeC.officeHoursFromDb.value?["pagi"];
+    var shiftSore = homeC.officeHoursFromDb.value?["sore"];
+    int split(String val, bool pickFirst) {
+      if (val.contains(":")) {
+        var parts = val.split(":");
+        return int.parse(pickFirst ? parts.first : parts.last);
       }
-      return PresenceBottomSheet(
-        user: user,
-        listPresence: body,
-      );
+      return int.parse(val); // return the original value if there is no colon
     }
+
+    var selectedShift = Rxn<int>();
+    var selectedJenisKerja = 0.obs;
+
+    var rxBody = body.obs;
+    print("TYPE PRESENCE ${typePresence}");
+
+    if (typePresence == 1) {
+      rxBody.value?['login_presence'] = DateTime.now().toLocal().toString();
+    } else if (typePresence == 2) {
+      rxBody.value?['logout_presence'] = DateTime.now().toLocal().toString();
+    } else if (typePresence == 3) {
+      rxBody.value?['lemburan'] = {
+        "manual": {
+          "lembur_masuk": DateTime.now().toLocal().toString(),
+        }
+      };
+    } else if (typePresence == 4) {
+      rxBody.value?['lemburan']['manual'] = {
+        "lembur_keluar": DateTime.now().toLocal().toString(),
+      };
+    }
+
+    Get.bottomSheet(
+      WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 36),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset("assets/ic_berhasil.svg"),
+              Utils.gapVertical(16),
+              typePresence != 6
+                  ? CustomText(
+                      "Presensi "
+                      "${typePresence == 1 ? "Masuk" : typePresence == 2 ? "Keluar" : ""}"
+                      " Berhasil",
+                      fontSize: 20,
+                      color: const Color(AppColor.colorGreen),
+                      fontWeight: FontWeight.w600,
+                    )
+                  : CustomText(
+                      "Sudah tidak ada presensi untuk hari ini",
+                      fontSize: 16,
+                      maxLines: 3,
+                      color: const Color(AppColor.colorBlack),
+                      fontWeight: FontWeight.w600,
+                    ),
+              if (typePresence != 6) Utils.gapVertical(4),
+              if (typePresence != 6)
+                Text.rich(
+                  TextSpan(
+                    text:
+                        "${typePresence == 1 ? "Selamat datang" : "Terimasih untuk hari ini"} ",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Color(AppColor.colorBlack),
+                      fontFamily: "poppins",
+                    ),
+                    children: <InlineSpan>[
+                      TextSpan(
+                        text: user?.userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      TextSpan(
+                        text:
+                            ", ${typePresence == 1 ? "Semangat kerjanya untuk hari ini!" : typePresence == 2 ? "Jangan lupa istirahat yaa" : typePresence == 3 ? "Namun jam kerja mu sudah selesai, mau lembur?" : "Terimakasih juga untuk lemburannya, jangan lupa istirahat"}",
+                        style: TextStyle(fontWeight: FontWeight.w400),
+                      )
+                    ],
+                  ),
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                ),
+              if (typePresence == 1) Utils.gapVertical(16),
+              if (typePresence == 1)
+                Container(
+                  width: Get.width,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(AppColor.colorLightGrey),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const CustomText(
+                        "Pilih Shift Anda",
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      Utils.gapVertical(12),
+                      Obx(
+                        () => Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                selectedShift.value = 0;
+                                rxBody.update((val) {
+                                  val?['shift'] = "0";
+                                  val?['status'] = (DateTime.parse(
+                                              rxBody.value?['login_presence'])
+                                          .isAfter(Utils.customDate(
+                                              split(
+                                                  shiftPagi["jamMasuk"], true),
+                                              split(shiftPagi["jamMasuk"],
+                                                  false))))
+                                      ? "2"
+                                      : "1";
+                                  if (val?['status'] == 2) {
+                                    val?['terlambat_time'] = DateTime.parse(
+                                            rxBody.value?["login_presence"])
+                                        .difference(Utils.customDate(
+                                            split(shiftPagi["jamMasuk"], true),
+                                            split(
+                                                shiftPagi["jamMasuk"], false)))
+                                        .inMinutes
+                                        .toString();
+                                  } else {
+                                    val?.remove('terlambat_time');
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: selectedShift.value == 0
+                                        ? Color(AppColor.colorWhite)
+                                        : Color(AppColor.colorBlue),
+                                  ),
+                                  color: selectedShift.value == 0
+                                      ? Color(AppColor.colorBlue)
+                                      : Color(AppColor.colorWhite),
+                                ),
+                                child: CustomText(
+                                  "Shift Pagi",
+                                  fontSize: 14,
+                                  color: selectedShift.value == 0
+                                      ? Color(AppColor.colorWhite)
+                                      : Color(AppColor.colorBlack),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                selectedShift.value = 1;
+                                rxBody.update((val) {
+                                  val?['shift'] = "1";
+                                  val?['status'] = (DateTime.parse(
+                                              rxBody.value?['login_presence'])
+                                          .isAfter(Utils.customDate(
+                                              split(
+                                                  shiftSore["jamMasuk"], true),
+                                              split(shiftSore["jamMasuk"],
+                                                  false))))
+                                      ? "2"
+                                      : "1";
+                                  if (val?['status'] == 2) {
+                                    val?['terlambat_time'] = DateTime.parse(
+                                            rxBody.value?["login_presence"])
+                                        .difference(Utils.customDate(
+                                            split(shiftSore["jamMasuk"], true),
+                                            split(
+                                                shiftSore["jamMasuk"], false)))
+                                        .inMinutes
+                                        .toString();
+                                  } else {
+                                    val?.remove('terlambat_time');
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: selectedShift.value == 1
+                                        ? Color(AppColor.colorWhite)
+                                        : Color(AppColor.colorBlue),
+                                  ),
+                                  color: selectedShift.value == 1
+                                      ? Color(AppColor.colorBlue)
+                                      : Color(AppColor.colorWhite),
+                                ),
+                                child: CustomText(
+                                  "Shift Sore",
+                                  fontSize: 14,
+                                  color: selectedShift.value == 1
+                                      ? Color(AppColor.colorWhite)
+                                      : Color(AppColor.colorBlack),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                selectedShift.value = 2;
+                                rxBody.update((val) {
+                                  val?['shift'] = "2";
+                                  val?['status'] = (DateTime.parse(
+                                              rxBody.value?['login_presence'])
+                                          .isAfter(Utils.customDate(
+                                              split(
+                                                  shiftPagi["jamMasuk"], true),
+                                              split(shiftPagi["jamMasuk"],
+                                                  false))))
+                                      ? "2"
+                                      : "1";
+                                  if (val?['status'] == 2) {
+                                    val?['terlambat_time'] = DateTime.parse(
+                                            rxBody.value?["login_presence"])
+                                        .difference(Utils.customDate(
+                                            split(shiftPagi["jamMasuk"], true),
+                                            split(
+                                                shiftPagi["jamMasuk"], false)))
+                                        .inMinutes
+                                        .toString();
+                                  } else {
+                                    val?.remove('terlambat_time');
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: selectedShift.value == 2
+                                        ? Color(AppColor.colorWhite)
+                                        : Color(AppColor.colorBlue),
+                                  ),
+                                  color: selectedShift.value == 2
+                                      ? Color(AppColor.colorBlue)
+                                      : Color(AppColor.colorWhite),
+                                ),
+                                child: CustomText(
+                                  "Full Shift",
+                                  fontSize: 14,
+                                  color: selectedShift.value == 2
+                                      ? Color(AppColor.colorWhite)
+                                      : Color(AppColor.colorBlack),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (typePresence == 1) Utils.gapVertical(16),
+              if (typePresence == 1)
+                Container(
+                  width: Get.width,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(AppColor.colorLightGrey),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      const CustomText(
+                        "Pilih Jenis Kerja",
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      Utils.gapVertical(12),
+                      Obx(
+                        () => Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                selectedJenisKerja.value = 0;
+                                rxBody.update((val) {
+                                  val?.remove("lemburan");
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: selectedJenisKerja.value == 0
+                                        ? Color(AppColor.colorWhite)
+                                        : Color(AppColor.colorBlue),
+                                  ),
+                                  color: selectedJenisKerja.value == 0
+                                      ? Color(AppColor.colorBlue)
+                                      : Color(AppColor.colorWhite),
+                                ),
+                                child: CustomText(
+                                  "Normal",
+                                  fontSize: 14,
+                                  color: selectedJenisKerja.value == 0
+                                      ? Color(AppColor.colorWhite)
+                                      : Color(AppColor.colorBlack),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                selectedJenisKerja.value = 1;
+                                rxBody.update((val) {
+                                  switch (selectedShift.value) {
+                                    case 0:
+                                      if (DateTime.parse(
+                                              rxBody.value?['login_presence'])
+                                          .isBefore(Utils.customDate(
+                                              split(
+                                                  shiftPagi["jamMasuk"], true),
+                                              split(shiftPagi["jamMasuk"],
+                                                  false)))) {
+                                        val?['lemburan'] = {
+                                          "auto_masuk": {
+                                            "lembur_masuk":
+                                                rxBody.value?['login_presence'],
+                                            "lembur_keluar": Utils.customDate(
+                                                    split(shiftPagi["jamMasuk"],
+                                                        true),
+                                                    split(shiftPagi["jamMasuk"],
+                                                        false))
+                                                .toLocal()
+                                                .toString(),
+                                          }
+                                        };
+                                      }
+                                      break;
+                                    case 1:
+                                      if (DateTime.parse(
+                                              rxBody.value?['login_presence'])
+                                          .isBefore(Utils.customDate(
+                                              split(
+                                                  shiftSore["jamMasuk"], true),
+                                              split(shiftSore["jamMasuk"],
+                                                  false)))) {
+                                        val?['lemburan'] = {
+                                          "auto_masuk": {
+                                            "lembur_masuk":
+                                                rxBody.value?['login_presence'],
+                                            "lembur_keluar": Utils.customDate(
+                                                    split(shiftSore["jamMasuk"],
+                                                        true),
+                                                    split(shiftSore["jamMasuk"],
+                                                        false))
+                                                .toLocal()
+                                                .toString(),
+                                          }
+                                        };
+                                      }
+                                      break;
+                                    case 2:
+                                      if (DateTime.parse(
+                                              rxBody.value?['login_presence'])
+                                          .isBefore(Utils.customDate(
+                                              split(
+                                                  shiftPagi["jamMasuk"], true),
+                                              split(shiftPagi["jamMasuk"],
+                                                  false)))) {
+                                        val?['lemburan'] = {
+                                          "auto_masuk": {
+                                            "lembur_masuk":
+                                                rxBody.value?['login_presence'],
+                                            "lembur_keluar": Utils.customDate(
+                                                    split(shiftPagi["jamMasuk"],
+                                                        true),
+                                                    split(shiftPagi["jamMasuk"],
+                                                        false))
+                                                .toLocal()
+                                                .toString(),
+                                          }
+                                        };
+                                      }
+                                      break;
+                                    default:
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: selectedJenisKerja.value == 1
+                                        ? Color(AppColor.colorWhite)
+                                        : Color(AppColor.colorBlue),
+                                  ),
+                                  color: selectedJenisKerja.value == 1
+                                      ? Color(AppColor.colorBlue)
+                                      : Color(AppColor.colorWhite),
+                                ),
+                                child: CustomText(
+                                  "Lembur",
+                                  fontSize: 14,
+                                  color: selectedJenisKerja.value == 1
+                                      ? Color(AppColor.colorWhite)
+                                      : Color(AppColor.colorBlack),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              if (typePresence == 1 || typePresence == 2) Utils.gapVertical(16),
+              if (typePresence == 1 || typePresence == 2)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              typePresence == 1 ? "Jam Masuk" : "Jam Keluar",
+                              color: const Color(AppColor.colorDarkGrey),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            Utils.gapVertical(8),
+                            CustomText(
+                              (body?["login_presence"] != null &&
+                                      typePresence == 1)
+                                  ? Utils.formatTime(DateTime.tryParse(
+                                      body?["login_presence"]))
+                                  : (body?["logout_presence"] != null &&
+                                          typePresence == 2)
+                                      ? Utils.formatTime(DateTime.tryParse(
+                                          body?["logout_presence"]))
+                                      : "-",
+                              color: const Color(AppColor.colorBlackNormal),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        Container(
+                          color: const Color(AppColor.colorLightGrey),
+                          height: 43,
+                          width: 1,
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const CustomText(
+                              "Shift",
+                              color: Color(AppColor.colorDarkGrey),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            Utils.gapVertical(8),
+                            Obx(
+                              () => CustomText(
+                                (rxBody.value?["shift"] != null)
+                                    ? Utils.typeShiftToString(
+                                        Utils.specifyTypeShift(
+                                            int.parse(rxBody.value!["shift"])))
+                                    : "-",
+                                color: const Color(AppColor.colorBlackNormal),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          ],
+                        ),
+                        Container(
+                          color: const Color(AppColor.colorLightGrey),
+                          height: 43,
+                          width: 1,
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const CustomText(
+                              "Status",
+                              color: Color(AppColor.colorDarkGrey),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            Utils.gapVertical(8),
+                            Obx(
+                              () => CustomText(
+                                (rxBody.value != null &&
+                                        rxBody.value!["status"] != null)
+                                    ? Utils.typeStatusToString(
+                                        Utils.specifyTypeStatus(int.parse(rxBody
+                                            .value!["status"]
+                                            .toString())))
+                                    : "-",
+                                color: const Color(AppColor.colorBlackNormal),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              if (typePresence != 6) Utils.gapVertical(24),
+              if (typePresence != 6)
+                appButton(
+                  text: (typePresence == 1 || typePresence == 2)
+                      ? 'Kirim'
+                      : typePresence == 3
+                          ? "Masuk Lembur"
+                          : "Selesai Lembur",
+                  onPressed: () async {
+                    var resAdd = await firestore.addPresence(
+                      rxBody.value?["docID"],
+                      rxBody.value!,
+                      rxBody.value?["userID"],
+                    );
+                    if (resAdd) {
+                      Get.back();
+                      Get.back();
+                    }
+                    print(rxBody.value);
+                  },
+                ),
+              Utils.gapVertical(16),
+              appButton(
+                text: (typePresence == 1 || typePresence == 2)
+                    ? 'Presensi Ulang'
+                    : 'Kembali',
+                onPressed: () async {
+                  _reload();
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          ),
+        ),
+      ),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      enableDrag: false,
+      isScrollControlled: true,
+      isDismissible: false,
+    );
   }
+}
+
+appButton({required String text, required VoidCallback onPressed}) {
+  return InkWell(
+    onTap: onPressed,
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        border: Border.all(color: const Color(AppColor.colorGreen)),
+      ),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 13.5),
+      width: Get.width,
+      height: 60,
+      child: CustomText(
+        text,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: const Color(AppColor.colorGreen),
+      ),
+    ),
+  );
 }

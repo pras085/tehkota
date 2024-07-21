@@ -31,7 +31,8 @@ class PresenceBottomSheet extends StatefulWidget {
 class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
   var homeC = Get.find<HomeController>();
   CloudFirestoreService firestore = CloudFirestoreService();
-  final selectedTab = RxnInt(); // Variabel untuk menyimpan id tombol yang terpilih
+  final selectedTab =
+      RxnInt(); // Variabel untuk menyimpan id tombol yang terpilih
   var typePresence = RxInt(1);
   var body = Rxn<Map<String, dynamic>>();
 
@@ -64,7 +65,8 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
     await firestore.getPresence(body.value?["docID"])?.then((value) async {
       // var idUser = value['userID'];
       if (value.data()?.containsKey(body.value?["userID"]) ?? false) {
-        Map<String, dynamic> dataPresenceSelected = value.data()?['${body.value?["userID"]}'];
+        Map<String, dynamic> dataPresenceSelected =
+            value.data()?['${body.value?["userID"]}'];
         var typeShift = Utils.specifyTypeShift(selectedTab.value);
         body.value?.putIfAbsent("shift", () => selectedTab.value.toString());
         body.value?.putIfAbsent("status", () => "");
@@ -72,22 +74,46 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
         if (typePresence.value == 1) {
           if (typeShift == TypeShift.shiftSore) {
             // if (DateTime.parse(dataPresenceSelected["login_presence"]).add(const Duration(minutes: 30)).isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) {
-            if (DateTime.parse(dataPresenceSelected["login_presence"]).add(const Duration(minutes: 30)).isAfter(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false)))) {
-              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false).toString();
+            if (DateTime.parse(dataPresenceSelected["login_presence"])
+                .add(const Duration(minutes: 30))
+                .isAfter(Utils.customDate(split(shiftSore["jamMasuk"], true),
+                    split(shiftSore["jamMasuk"], false)))) {
+              body.value?["status"] =
+                  Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false)
+                      .toString();
               body.value?.putIfAbsent("terlambat_time", () {
-                return DateTime.parse(dataPresenceSelected["login_presence"]).difference(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false))).inMinutes.toString();
+                return DateTime.parse(dataPresenceSelected["login_presence"])
+                    .difference(Utils.customDate(
+                        split(shiftSore["jamMasuk"], true),
+                        split(shiftSore["jamMasuk"], false)))
+                    .inMinutes
+                    .toString();
               });
             } else {
-              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false).toString();
+              body.value?["status"] =
+                  Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false)
+                      .toString();
             }
           } else {
-            if (DateTime.parse(dataPresenceSelected["login_presence"]).add(const Duration(minutes: 30)).isAfter(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)))) {
-              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false).toString();
+            if (DateTime.parse(dataPresenceSelected["login_presence"])
+                .add(const Duration(minutes: 30))
+                .isAfter(Utils.customDate(split(shiftPagi["jamMasuk"], true),
+                    split(shiftPagi["jamMasuk"], false)))) {
+              body.value?["status"] =
+                  Utils.specifyTypeStatus(TypeStatus.terlambat, fromInt: false)
+                      .toString();
               body.value?.putIfAbsent("terlambat_time", () {
-                return DateTime.parse(dataPresenceSelected["login_presence"]).difference(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false))).inMinutes.toString();
+                return DateTime.parse(dataPresenceSelected["login_presence"])
+                    .difference(Utils.customDate(
+                        split(shiftPagi["jamMasuk"], true),
+                        split(shiftPagi["jamMasuk"], false)))
+                    .inMinutes
+                    .toString();
               });
             } else {
-              body.value?["status"] = Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false).toString();
+              body.value?["status"] =
+                  Utils.specifyTypeStatus(TypeStatus.tepatWaktu, fromInt: false)
+                      .toString();
             }
           }
         }
@@ -119,7 +145,11 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: selectedTab.value == Utils.specifyTypeShift(typeShift, fromInt: false) ? const Color(AppColor.colorLightGreen) : Colors.transparent),
+          border: Border.all(
+              color: selectedTab.value ==
+                      Utils.specifyTypeShift(typeShift, fromInt: false)
+                  ? const Color(AppColor.colorLightGreen)
+                  : Colors.transparent),
         ),
         child: CustomText(
           Utils.typeShiftToString(typeShift),
@@ -133,7 +163,8 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
   Widget build(BuildContext context) {
     if (widget.statusPresence == 1) {
       if (widget.listPresence != null) {
-        if (widget.listPresence!.containsKey("login_presence") && widget.listPresence!.containsKey("logout_presence")) {
+        if (widget.listPresence!.containsKey("login_presence") &&
+            widget.listPresence!.containsKey("logout_presence")) {
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
             alignment: Alignment.center,
@@ -153,6 +184,8 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                   "Anda sudah melakukan presensi hari ini !",
                   fontWeight: FontWeight.w600,
                   fontSize: 18,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
                 ),
                 Utils.gapVertical(24),
                 appButton(
@@ -166,7 +199,8 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
             ),
           );
         } else if ((widget.listPresence!.containsKey("logout_presence"))) {
-          typePresence.value = 2; // pengecekan untuk menampilkan tampilan presensi keluar
+          typePresence.value =
+              2; // pengecekan untuk menampilkan tampilan presensi keluar
         }
       }
       return WillPopScope(
@@ -205,7 +239,9 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                 SvgPicture.asset("assets/ic_berhasil.svg"),
                 Utils.gapVertical(16),
                 CustomText(
-                  "Presensi " "${typePresence.value == 1 ? "Masuk" : "Keluar"}" " Berhasil",
+                  "Presensi "
+                  "${typePresence.value == 1 ? "Masuk" : "Keluar"}"
+                  " Berhasil",
                   fontSize: 20,
                   color: const Color(AppColor.colorGreen),
                   fontWeight: FontWeight.w600,
@@ -213,7 +249,8 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                 Utils.gapVertical(4),
                 Text.rich(
                   TextSpan(
-                    text: "Selamat datang ",
+                    text:
+                        "${typePresence.value == 1 ? "Selamat datang" : "Terimasih untuk hari ini"} ",
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
@@ -227,13 +264,15 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const TextSpan(
-                        text: ", Semangat kerjanya untuk hari ini!",
+                      TextSpan(
+                        text:
+                            ", ${typePresence.value == 1 ? "Semangat kerjanya untuk hari ini!" : "Jangan lupa istirahat yaa"}",
                         style: TextStyle(fontWeight: FontWeight.w400),
                       )
                     ],
                   ),
                   maxLines: 2,
+                  textAlign: TextAlign.center,
                 ),
                 Utils.gapVertical(16),
                 Obx(() {
@@ -256,26 +295,71 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                               ),
                               Utils.gapVertical(28),
                               Obx(() => Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  // if (DateTime.now().hour > 2 || DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
-                                  //   shiftButton(TypeShift.shiftSore),
-                                  //   shiftButton(TypeShift.shiftFull),
-                                  // ] else ...[
-                                  //   shiftButton(TypeShift.shiftPagi),
-                                  //   shiftButton(TypeShift.shiftFull),
-                                  // ]
-                                  shiftButton(TypeShift.shiftPagi),
-                                  shiftButton(TypeShift.shiftSore),
-                                  shiftButton(TypeShift.shiftFull),
-                                ],
-                              )),
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      // if (DateTime.now().hour > 2 || DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
+                                      //   shiftButton(TypeShift.shiftSore),
+                                      //   shiftButton(TypeShift.shiftFull),
+                                      // ] else ...[
+                                      //   shiftButton(TypeShift.shiftPagi),
+                                      //   shiftButton(TypeShift.shiftFull),
+                                      // ]
+                                      shiftButton(TypeShift.shiftPagi),
+                                      shiftButton(TypeShift.shiftSore),
+                                      shiftButton(TypeShift.shiftFull),
+                                    ],
+                                  )),
                             ],
                           ),
                         )
                       else
                         const SizedBox(),
-                      if (selectedTab.value == null && typePresence.value == 1) Utils.gapVertical(16) else const SizedBox(),
+                      if (selectedTab.value == null && typePresence.value == 1)
+                        Utils.gapVertical(16)
+                      else
+                        const SizedBox(),
+                      // if (selectedTab.value == null && typePresence.value == 1)
+                      //   Container(
+                      //     width: Get.width,
+                      //     decoration: BoxDecoration(
+                      //       borderRadius: BorderRadius.circular(12),
+                      //       color: const Color(AppColor.colorLightGrey),
+                      //     ),
+                      //     padding: const EdgeInsets.all(16),
+                      //     child: Column(
+                      //       children: [
+                      //         const CustomText(
+                      //           "Pilih Jenis Jam Kerja",
+                      //           fontSize: 16,
+                      //           fontWeight: FontWeight.w600,
+                      //         ),
+                      //         Utils.gapVertical(28),
+                      //         Obx(() => Row(
+                      //               mainAxisAlignment:
+                      //                   MainAxisAlignment.spaceAround,
+                      //               children: [
+                      //                 // if (DateTime.now().hour > 2 || DateTime.now().isAfter(Utils.officeHours(TypeShift.shiftSore)["login_presence"]!)) ...[
+                      //                 //   shiftButton(TypeShift.shiftSore),
+                      //                 //   shiftButton(TypeShift.shiftFull),
+                      //                 // ] else ...[
+                      //                 //   shiftButton(TypeShift.shiftPagi),
+                      //                 //   shiftButton(TypeShift.shiftFull),
+                      //                 // ]
+                      //                 shiftButton(TypeShift.shiftPagi),
+                      //                 shiftButton(TypeShift.shiftSore),
+                      //                 shiftButton(TypeShift.shiftFull),
+                      //               ],
+                      //             )),
+                      //       ],
+                      //     ),
+                      //   )
+                      // else
+                      //   const SizedBox(),
+                      // if (selectedTab.value == null && typePresence.value == 1)
+                      //   Utils.gapVertical(16)
+                      // else
+                      //   const SizedBox(),
                     ],
                   );
                 }),
@@ -292,17 +376,24 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  typePresence.value == 1 ? "Jam Masuk" : "Jam Keluar",
+                                  typePresence.value == 1
+                                      ? "Jam Masuk"
+                                      : "Jam Keluar",
                                   color: const Color(AppColor.colorDarkGrey),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
                                 ),
                                 Utils.gapVertical(8),
                                 CustomText(
-                                  (body.value?["login_presence"] != null && typePresence.value == 1)
-                                      ? Utils.formatTime(DateTime.tryParse(body.value?["login_presence"]))
-                                      : (body.value?["logout_presence"] != null && typePresence.value == 2)
-                                          ? Utils.formatTime(DateTime.tryParse(body.value?["logout_presence"]))
+                                  (body.value?["login_presence"] != null &&
+                                          typePresence.value == 1)
+                                      ? Utils.formatTime(DateTime.tryParse(
+                                          body.value?["login_presence"]))
+                                      : (body.value?["logout_presence"] !=
+                                                  null &&
+                                              typePresence.value == 2)
+                                          ? Utils.formatTime(DateTime.tryParse(
+                                              body.value?["logout_presence"]))
                                           : "-",
                                   color: const Color(AppColor.colorBlackNormal),
                                   fontSize: 14,
@@ -328,7 +419,12 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                               Utils.gapVertical(8),
                               Obx(() {
                                 return CustomText(
-                                  (body.value != null && body.value!["shift"] != null) ? Utils.typeShiftToString(Utils.specifyTypeShift(int.parse(body.value!["shift"]))) : "-",
+                                  (body.value != null &&
+                                          body.value!["shift"] != null)
+                                      ? Utils.typeShiftToString(
+                                          Utils.specifyTypeShift(
+                                              int.parse(body.value!["shift"])))
+                                      : "-",
                                   color: const Color(AppColor.colorBlackNormal),
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -353,7 +449,13 @@ class _PresenceBottomSheetState extends State<PresenceBottomSheet> {
                                 ),
                                 Utils.gapVertical(8),
                                 CustomText(
-                                  (body.value != null && body.value!["status"] != null) ? Utils.typeStatusToString(Utils.specifyTypeStatus(int.parse(body.value!["status"].toString()))) : "-",
+                                  (body.value != null &&
+                                          body.value!["status"] != null)
+                                      ? Utils.typeStatusToString(
+                                          Utils.specifyTypeStatus(int.parse(body
+                                              .value!["status"]
+                                              .toString())))
+                                      : "-",
                                   color: const Color(AppColor.colorBlackNormal),
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,

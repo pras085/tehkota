@@ -31,7 +31,11 @@ class HomeView extends GetView<HomeController> {
             Align(
               alignment: Alignment.centerLeft,
               child: Row(
-                children: [Image.asset("assets/logo_splash.png"), const SizedBox(width: 12), _profileWidget()],
+                children: [
+                  Image.asset("assets/logo_splash.png"),
+                  const SizedBox(width: 12),
+                  _profileWidget()
+                ],
               ),
             ),
             Align(
@@ -63,21 +67,17 @@ class HomeView extends GetView<HomeController> {
           }
           return SingleChildScrollView(
             controller: controller.scrollC,
-            physics: const NeverScrollableScrollPhysics(),
+            // physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 24,
             ),
-            child: SizedBox(
-              width: Get.width,
-              height: Get.height,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _shiftTodayWidget(),
-                  _historyPresenceWidget(),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _shiftTodayWidget(),
+                _historyPresenceWidget(),
+              ],
             ),
           );
         }),
@@ -133,7 +133,12 @@ class HomeView extends GetView<HomeController> {
                 borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
               child: CustomText(
-                ((now.isBefore(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)))) || now.isBefore(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false))))
+                ((now.isBefore(Utils.customDate(
+                            split(shiftPagi["jamMasuk"], true),
+                            split(shiftPagi["jamMasuk"], false)))) ||
+                        now.isBefore(Utils.customDate(
+                            split(shiftSore["jamMasuk"], true),
+                            split(shiftSore["jamMasuk"], false))))
                     ? Utils.typeShiftToString(TypeShift.shiftPagi)
                     : Utils.typeShiftToString(TypeShift.shiftSore),
                 color: const Color(AppColor.colorWhite),
@@ -151,12 +156,18 @@ class HomeView extends GetView<HomeController> {
               var parts = val.split(":");
               return int.parse(pickFirst ? parts.first : parts.last);
             }
-            return int.parse(val); // return the original value if there is no colon
+            return int.parse(
+                val); // return the original value if there is no colon
           }
 
           return Row(
             children: [
-              if ((now.isBefore(Utils.customDate(split(shiftPagi["jamMasuk"], true), split(shiftPagi["jamMasuk"], false)))) || now.isBefore(Utils.customDate(split(shiftSore["jamMasuk"], true), split(shiftSore["jamMasuk"], false)))) ...[
+              if ((now.isBefore(Utils.customDate(
+                      split(shiftPagi["jamMasuk"], true),
+                      split(shiftPagi["jamMasuk"], false)))) ||
+                  now.isBefore(Utils.customDate(
+                      split(shiftSore["jamMasuk"], true),
+                      split(shiftSore["jamMasuk"], false)))) ...[
                 _cardShiftTodayWidget(
                   "Presensi Masuk",
                   Utils.typeShiftToString(TypeShift.shiftPagi),
@@ -259,42 +270,39 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _historyPresenceWidget() {
-    return Expanded(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const CustomText(
-                "Riwayat Presensi",
-                fontSize: 16,
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const CustomText(
+              "Riwayat Presensi",
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+            GestureDetector(
+              onTap: () => Get.toNamed(Routes.HISTORY),
+              child: const CustomText(
+                "Lihat Semua",
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
+                color: Color(AppColor.colorGreen),
               ),
-              GestureDetector(
-                onTap: () => Get.toNamed(Routes.HISTORY),
-                child: const CustomText(
-                  "Lihat Semua",
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(AppColor.colorGreen),
-                ),
-              ),
-            ],
-          ),
-          Obx(() {
-            return Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: controller.listDataPresence.value.length,
-                controller: controller.scrollC,
-                itemBuilder: (context, i) {
-                  return CardPresenceDetail(controller.listDataPresence.value[i]);
-                },
-              ),
-            );
-          })
-        ],
-      ),
+            ),
+          ],
+        ),
+        Obx(() {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: controller.listDataPresence.value.length,
+            controller: controller.scrollC,
+            itemBuilder: (context, i) {
+              return CardPresenceDetail(controller.listDataPresence.value[i]);
+            },
+          );
+        })
+      ],
     );
   }
 }
