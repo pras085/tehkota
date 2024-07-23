@@ -181,7 +181,7 @@ class _CardRecapDetailState extends State<CardRecapDetail> {
                           Column(
                             children: [
                               CustomText(
-                                "${widget.data["totalOvertime"]} Jam",
+                                "${(widget.data["totalOvertime"] ~/ 60)} Jam",
                                 color: const Color(AppColor.colorBlue),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,

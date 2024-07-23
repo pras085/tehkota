@@ -144,10 +144,30 @@ class RekapController extends GetxController {
       }
 
       // Menghitung lembur (jika ada)
-      if (entry.containsKey('lembur_time')) {
-        int lemburTimeInMinutes = int.parse(entry['lembur_time']);
-        int lemburTimeInHours = lemburTimeInMinutes ~/ 60; // konversi ke jam sebagai int
-        summary[userID]?['totalOvertime'] = (summary[userID]?['totalOvertime'] ?? 0) + lemburTimeInHours; // Pastikan menggunakan 0 untuk int
+      Map<String, dynamic>? lemburan = entry['lemburan'];
+
+      if (lemburan != null) {
+        int totalMinutes = 0;
+
+        // Urutan kunci yang diharapkan
+        List<String> keysInOrder = ["auto_masuk", "auto_keluar", "manual"];
+
+        for (String key in keysInOrder) {
+          if (lemburan.containsKey(key)) {
+            Map<String, dynamic> value = lemburan[key];
+
+            // Parse datetime dan hitung durasi jika data tersedia
+            if (value.containsKey('lembur_masuk') && value.containsKey('lembur_keluar')) {
+              DateTime masuk = DateTime.parse(value['lembur_masuk']);
+              DateTime keluar = DateTime.parse(value['lembur_keluar']);
+              Duration durasi = keluar.difference(masuk);
+              totalMinutes += durasi.inMinutes; // Akumulasi total durasi lembur dalam menit
+            }
+          }
+        }
+
+        // Tambahkan total durasi lembur ke dalam summary
+        summary[userID]?['totalOvertime'] += totalMinutes;
       }
     }
 
@@ -166,7 +186,7 @@ class RekapController extends GetxController {
   // Method to calculate gaji lembur
   String calculateGajiLembur(Map data) {
     int gajiPerJamLembur = int.parse("${data['gaji']['lembur'] ?? 2000}");
-    int gajiLembur = data["totalOvertime"] * gajiPerJamLembur;
+    int gajiLembur = (data["totalOvertime"] ~/ 60) * gajiPerJamLembur;
     return "Rp. ${gajiLembur.toStringAsFixed(0)}";
   }
 
