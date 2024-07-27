@@ -97,145 +97,134 @@ class RekapView extends GetView<RekapController> {
   }
 
   Future<void> printAllData() async {
-    final pdfDoc = pw.Document();
-    final ByteData image = await rootBundle.load('assets/logo_splash.png');
-    Uint8List imageData = (image).buffer.asUint8List();
+    // final pdfDoc = pw.Document();
+    // final ByteData image = await rootBundle.load('assets/logo_splash.png');
+    // Uint8List imageData = (image).buffer.asUint8List();
+    Printing.layoutPdf(
+      format: pdf.PdfPageFormat.legal,
+      name: 'Rekap - ${Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy")}.pdf',
+      onLayout: (format) async {
+        final pdfDoc = pw.Document();
+        final ByteData image = await rootBundle.load('assets/logo_splash.png');
 
-    pdfDoc.addPage(
-      pw.Page(
-        pageFormat: pdf.PdfPageFormat.a4,
-        build: (context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Container(
-                width: Get.width,
-                color: const pdf.PdfColor.fromInt(AppColor.colorLightGrey),
-                child: pw.Row(
-                  children: [
-                    pw.Container(
-                      width: 80,
-                      height: 80,
-                      margin: const pw.EdgeInsets.only(right: 8),
-                      child: pw.Image(pw.MemoryImage(imageData)),
-                    ),
-                    pw.Column(
+        Uint8List imageData = (image).buffer.asUint8List();
+        pdfDoc.addPage(
+          pw.Page(
+            margin: const pw.EdgeInsets.all(6),
+            build: (context) {
+              return pw.ConstrainedBox(
+                constraints: const pw.BoxConstraints.expand(),
+                child: pw.FittedBox(
+                  fit: pw.BoxFit.contain,
+                  alignment: pw.Alignment.topCenter,
+                  child: pw.Container(
+                    width: Get.width,
+                    child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text(
-                          "Teh Kota",
-                          style: pw.TextStyle(
-                            fontSize: 14,
-                            fontWeight: pw.FontWeight.bold,
+                        pw.Container(
+                          width: Get.width,
+                          color: const pdf.PdfColor.fromInt(AppColor.colorLightGrey),
+                          child: pw.Row(
+                            children: [
+                              pw.Container(
+                                width: 80,
+                                height: 80,
+                                margin: const pw.EdgeInsets.only(right: 8),
+                                child: pw.Image(pw.MemoryImage(imageData)),
+                              ),
+                              pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text(
+                                    "Teh Kota",
+                                    style: pw.TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: pw.FontWeight.bold,
+                                    ),
+                                  ),
+                                  pw.SizedBox(height: 4),
+                                  pw.Text(
+                                    Utils.branchName,
+                                    style: const pw.TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                              pw.Spacer(),
+                              pw.Text(
+                                Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy"),
+                                style: pw.TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: pw.FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        pw.SizedBox(height: 4),
-                        pw.Text(
-                          Utils.branchName,
-                          style: const pw.TextStyle(fontSize: 12),
+                        pw.Container(
+                          margin: const pw.EdgeInsets.only(top: 16),
+                          child: pw.Table(
+                            defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                            tableWidth: pw.TableWidth.min,
+                            border: const pw.TableBorder(
+                              horizontalInside: pw.BorderSide(
+                                color: pdf.PdfColor.fromInt(AppColor.colorLightGrey),
+                                width: 1,
+                              ),
+                            ),
+                            children: [
+                              pw.TableRow(
+                                verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                                repeat: true,
+                                children: [
+                                  headTitleColumn("Nama\nKaryawan"),
+                                  headTitleColumn("Gaji"),
+                                  headTitleColumn("Lembur"),
+                                  headTitleColumn("Potongan"),
+                                  headTitleColumn("Total Gaji"),
+                                ],
+                              ),
+                              ...controller.listDataPresence.asMap().entries.map(
+                                (data) {
+                                  return pw.TableRow(children: [
+                                    contentColumn(data.value["userName"] ?? ""),
+                                    contentColumn("${data.value["totalPresence"]} Jam\n${controller.calculateGajiHadir(data.value)}"),
+                                    contentColumn("${data.value["totalOvertime"] ~/ 60} Jam\n${controller.calculateGajiLembur(data.value)}"),
+                                    contentColumn("${data.value["totalLate"]} Jam\n ${controller.calculateGajiTerpotong(data.value)}"),
+                                    contentColumn(controller.calculateGajiTotal(data.value)),
+                                  ]);
+                                },
+                              ),
+                              pw.TableRow(
+                                verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                                children: [
+                                  pw.SizedBox(),
+                                  pw.SizedBox(),
+                                  pw.SizedBox(),
+                                  pw.Container(
+                                    padding: const pw.EdgeInsets.symmetric(vertical: 6),
+                                    child: pw.Text(
+                                      'Total Pengeluaran : ',
+                                      textAlign: pw.TextAlign.center,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                  pw.Center(child: pw.Text(controller.calculateTotalPengeluaran(controller.listDataPresence[0]))),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
-                    ),
-                    pw.Spacer(),
-                    pw.Text(
-                      Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy"),
-                      style: pw.TextStyle(
-                        fontSize: 16,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              pw.Container(
-                margin: const pw.EdgeInsets.only(top: 16),
-                padding: const pw.EdgeInsets.all(12),
-                width: Get.width,
-                child: pw.Table(
-                  border: const pw.TableBorder(
-                    horizontalInside: pw.BorderSide(
-                      color: pdf.PdfColor.fromInt(AppColor.colorLightGrey),
-                      width: 1,
                     ),
                   ),
-                  children: [
-                    pw.TableRow(
-                      repeat: true,
-                      children: [
-                        pw.Center(child: pw.Text('Nama Karyawan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                        pw.Center(child: pw.Text('Gaji', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                        pw.Center(child: pw.Text('Lembur', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                        pw.Center(child: pw.Text('Potongan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                        pw.Center(child: pw.Text('Total Gaji', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                      ],
-                    ),
-                    ...controller.listDataPresence.asMap().entries.map(
-                      (data) {
-                        return pw.TableRow(decoration: const pw.BoxDecoration(), children: [
-                          pw.Center(
-                            child: pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                              child: pw.Text(
-                                data.value["userName"] ?? "",
-                              ),
-                            ),
-                          ),
-                          pw.Center(
-                            child: pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                              child: pw.Text(
-                                controller.calculateGajiHadir(data.value),
-                              ),
-                            ),
-                          ),
-                          pw.Center(
-                            child: pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                              child: pw.Text(
-                                controller.calculateGajiLembur(data.value),
-                              ),
-                            ),
-                          ),
-                          pw.Center(
-                            child: pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                              child: pw.Text(
-                                controller.calculateGajiTerpotong(data.value),
-                              ),
-                            ),
-                          ),
-                          pw.Center(
-                            child: pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                              child: pw.Text(
-                                controller.calculateGajiTotal(data.value),
-                              ),
-                            ),
-                          ),
-                        ]);
-                      },
-                    ),
-                    pw.TableRow(
-                      children: [
-                        pw.SizedBox(),
-                        pw.SizedBox(),
-                        pw.SizedBox(),
-                        pw.Center(child: pw.Text('Total Pengeluaran : ')),
-                        pw.Center(child: pw.Text(controller.calculateTotalPengeluaran(controller.listDataPresence[0]))),
-                      ],
-                    ),
-                  ],
                 ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-
-    await Printing.sharePdf(
-      bytes: await pdfDoc.save(),
-      filename: 'Rekap - ${Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy")}.pdf',
+              );
+            },
+          ),
+        );
+        return await pdfDoc.save();
+      },
     );
   }
 
@@ -312,190 +301,141 @@ class RekapView extends GetView<RekapController> {
                                   index: i,
                                   isAdmin: Utils.isAdmin.value,
                                   onPrintTap: () async {
-                                    final pdfDoc = pw.Document();
-                                    final ByteData image = await rootBundle.load('assets/logo_splash.png');
+                                    Printing.layoutPdf(
+                                      format: pdf.PdfPageFormat.legal,
+                                      name: 'Rekap - ${Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy")}.pdf',
+                                      onLayout: (format) async {
+                                        final pdfDoc = pw.Document();
+                                        final ByteData image = await rootBundle.load('assets/logo_splash.png');
 
-                                    Uint8List imageData = (image).buffer.asUint8List();
+                                        Uint8List imageData = (image).buffer.asUint8List();
 
-                                    pdfDoc.addPage(
-                                      pw.Page(
-                                        pageFormat: pdf.PdfPageFormat.a4,
-                                        build: (context) {
-                                          return pw.Container(
-                                            width: Get.width,
-                                            child: pw.Column(
-                                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                              children: [
-                                                pw.Container(
-                                                  width: Get.width,
-                                                  color: const pdf.PdfColor.fromInt(AppColor.colorLightGrey),
-                                                  child: pw.Row(
-                                                    children: [
-                                                      pw.Container(
-                                                        width: 80,
-                                                        height: 80,
-                                                        margin: const pw.EdgeInsets.only(right: 8),
-                                                        child: pw.Image(pw.MemoryImage(imageData)),
-                                                      ),
-                                                      pw.Column(
-                                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                                        children: [
-                                                          pw.Text(
-                                                            "Teh Kota",
-                                                            style: pw.TextStyle(
-                                                              fontSize: 14,
-                                                              fontWeight: pw.FontWeight.bold,
-                                                            ),
+                                        pdfDoc.addPage(
+                                          pw.Page(
+                                            margin: const pw.EdgeInsets.all(6),
+                                            build: (context) {
+                                              return pw.ConstrainedBox(
+                                                constraints: const pw.BoxConstraints.expand(),
+                                                child: pw.FittedBox(
+                                                  fit: pw.BoxFit.contain,
+                                                  alignment: pw.Alignment.topCenter,
+                                                  child: pw.Container(
+                                                    width: Get.width,
+                                                    child: pw.Column(
+                                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                                      children: [
+                                                        pw.Container(
+                                                          width: Get.width,
+                                                          color: const pdf.PdfColor.fromInt(AppColor.colorLightGrey),
+                                                          child: pw.Row(
+                                                            children: [
+                                                              pw.Container(
+                                                                width: 80,
+                                                                height: 80,
+                                                                margin: const pw.EdgeInsets.only(right: 8),
+                                                                child: pw.Image(pw.MemoryImage(imageData)),
+                                                              ),
+                                                              pw.Column(
+                                                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                                                children: [
+                                                                  pw.Text(
+                                                                    "Teh Kota",
+                                                                    style: pw.TextStyle(
+                                                                      fontSize: 14,
+                                                                      fontWeight: pw.FontWeight.bold,
+                                                                    ),
+                                                                  ),
+                                                                  pw.SizedBox(height: 4),
+                                                                  pw.Text(
+                                                                    Utils.branchName,
+                                                                    style: const pw.TextStyle(fontSize: 12),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              pw.Spacer(),
+                                                              pw.Text(
+                                                                Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy"),
+                                                                style: pw.TextStyle(
+                                                                  fontSize: 16,
+                                                                  fontWeight: pw.FontWeight.bold,
+                                                                ),
+                                                              ),
+                                                              pw.SizedBox(width: 16)
+                                                            ],
                                                           ),
-                                                          pw.SizedBox(height: 4),
-                                                          pw.Text(
-                                                            Utils.branchName,
-                                                            style: const pw.TextStyle(fontSize: 12),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      pw.Spacer(),
-                                                      pw.Text(
-                                                        Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy"),
-                                                        style: pw.TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: pw.FontWeight.bold,
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                pw.Container(
-                                                  margin: const pw.EdgeInsets.only(top: 16),
-                                                  padding: const pw.EdgeInsets.all(12),
-                                                  width: Get.width,
-                                                  child: pw.Table(
-                                                    border: const pw.TableBorder(
-                                                      horizontalInside: pw.BorderSide(
-                                                        color: pdf.PdfColor.fromInt(AppColor.colorLightGrey),
-                                                        width: 1,
-                                                      ),
+                                                        pw.Container(
+                                                          margin: const pw.EdgeInsets.only(top: 16),
+                                                          child: pw.Table(
+                                                            defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
+                                                            border: const pw.TableBorder(
+                                                              // verticalInside: pw.BorderSide(
+                                                              //   color: pdf.PdfColor.fromInt(AppColor.colorLightGrey),
+                                                              //   width: 1,
+                                                              // ),
+                                                              horizontalInside: pw.BorderSide(
+                                                                color: pdf.PdfColor.fromInt(AppColor.colorLightGrey),
+                                                                width: 1,
+                                                              ),
+                                                            ),
+                                                            children: [
+                                                              pw.TableRow(
+                                                                verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                                                                repeat: true,
+                                                                children: [
+                                                                  headTitleColumn("Nama\nKaryawan"),
+                                                                  headTitleColumn("Gaji"),
+                                                                  headTitleColumn("Lembur"),
+                                                                  headTitleColumn("Potongan"),
+                                                                  headTitleColumn("Total Gaji"),
+                                                                ],
+                                                              ),
+                                                              pw.TableRow(
+                                                                verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                                                                children: [
+                                                                  contentColumn(controller.listDataPresence[i]["userName"] ?? ""),
+                                                                  contentColumn("${controller.listDataPresence[i]["totalPresence"]} Jam\n${controller.calculateGajiHadir(controller.listDataPresence[i])}"),
+                                                                  contentColumn("${controller.listDataPresence[i]["totalOvertime"] ~/ 60} Jam\n${controller.calculateGajiLembur(controller.listDataPresence[i])}"),
+                                                                  contentColumn("${controller.listDataPresence[i]["totalLate"]} Jam\n ${controller.calculateGajiTerpotong(controller.listDataPresence[i])}"),
+                                                                  contentColumn(controller.calculateGajiTotal(controller.listDataPresence[i])),
+                                                                ],
+                                                              ),
+                                                              pw.TableRow(
+                                                                verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                                                                children: [
+                                                                  pw.SizedBox(),
+                                                                  pw.SizedBox(),
+                                                                  pw.SizedBox(),
+                                                                  pw.Container(
+                                                                    padding: const pw.EdgeInsets.symmetric(vertical: 6),
+                                                                    child: pw.Text(
+                                                                      'Total Pengeluaran : ',
+                                                                      textAlign: pw.TextAlign.center,
+                                                                      maxLines: 1,
+                                                                    ),
+                                                                  ),
+                                                                  pw.Container(
+                                                                    padding: const pw.EdgeInsets.symmetric(vertical: 6),
+                                                                    child: pw.Text(
+                                                                      controller.calculateTotalPengeluaran(controller.listDataPresence[i], isSingle: true),
+                                                                      textAlign: pw.TextAlign.center,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                    children: [
-                                                      pw.TableRow(
-                                                        repeat: true,
-                                                        children: [
-                                                          pw.Center(child: pw.Text('Nama Karyawan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                                                          pw.Center(child: pw.Text('Gaji', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                                                          pw.Center(child: pw.Text('Lembur', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                                                          pw.Center(child: pw.Text('Potongan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                                                          pw.Center(child: pw.Text('Total Gaji', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
-                                                        ],
-                                                      ),
-                                                      pw.TableRow(decoration: pw.BoxDecoration(), children: [
-                                                        pw.Center(
-                                                          child: pw.Padding(
-                                                            padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                            child: pw.Text(
-                                                              controller.listDataPresence[i]["userName"] ?? "",
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        pw.Center(
-                                                          child: pw.Padding(
-                                                            padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                            child: pw.Text(
-                                                              controller.calculateGajiHadir(controller.listDataPresence[i]),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        pw.Center(
-                                                          child: pw.Padding(
-                                                            padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                            child: pw.Text(
-                                                              controller.calculateGajiLembur(controller.listDataPresence[i]),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        pw.Center(
-                                                          child: pw.Padding(
-                                                            padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                            child: pw.Text(
-                                                              controller.calculateGajiTerpotong(controller.listDataPresence[i]),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        pw.Center(
-                                                          child: pw.Padding(
-                                                            padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                            child: pw.Text(
-                                                              controller.calculateGajiTotal(controller.listDataPresence[i]),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ]),
-                                                      // ...controller.listDataPresence.asMap().entries.map(
-                                                      //   (data) {
-                                                      //     return pw.TableRow(decoration: pw.BoxDecoration(), children: [
-                                                      //       pw.Center(
-                                                      //         child: pw.Padding(
-                                                      //           padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                      //           child: pw.Text(
-                                                      //             data.value["userName"] ?? "",
-                                                      //           ),
-                                                      //         ),
-                                                      //       ),
-                                                      //       pw.Center(
-                                                      //         child: pw.Padding(
-                                                      //           padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                      //           child: pw.Text(
-                                                      //             controller.calculateGajiHadir(controller.listDataPresence[i]),
-                                                      //           ),
-                                                      //         ),
-                                                      //       ),
-                                                      //       pw.Center(
-                                                      //         child: pw.Padding(
-                                                      //           padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                      //           child: pw.Text(
-                                                      //             controller.calculateGajiLembur(controller.listDataPresence[i]),
-                                                      //           ),
-                                                      //         ),
-                                                      //       ),
-                                                      //       pw.Center(
-                                                      //         child: pw.Padding(
-                                                      //           padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                      //           child: pw.Text(
-                                                      //             controller.calculateGajiTerpotong(controller.listDataPresence[i]),
-                                                      //           ),
-                                                      //         ),
-                                                      //       ),
-                                                      //       pw.Center(
-                                                      //         child: pw.Padding(
-                                                      //           padding: const pw.EdgeInsets.symmetric(vertical: 20),
-                                                      //           child: pw.Text(
-                                                      //             controller.calculateGajiTotal(controller.listDataPresence[i]),
-                                                      //           ),
-                                                      //         ),
-                                                      //       ),
-                                                      //     ]);
-                                                      //   },
-                                                      // ),
-                                                      pw.TableRow(
-                                                        children: [
-                                                          pw.SizedBox(),
-                                                          pw.SizedBox(),
-                                                          pw.SizedBox(),
-                                                          pw.Center(child: pw.Text('Total Pengeluaran : ')),
-                                                          pw.Center(child: pw.Text(controller.calculateTotalPengeluaran(controller.listDataPresence[i], isSingle: true))),
-                                                        ],
-                                                      ),
-                                                    ],
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    );
-                                    await Printing.sharePdf(
-                                      bytes: await pdfDoc.save(),
-                                      filename: 'Rekap - ${Utils.formatTanggaLocal(controller.selectedMonth.toString(), format: "MMMM yyyy")}.pdf',
+                                              );
+                                            },
+                                          ),
+                                        );
+                                        return await pdfDoc.save();
+                                      },
                                     );
                                   },
                                 );
@@ -506,6 +446,32 @@ class RekapView extends GetView<RekapController> {
             );
           })
         ],
+      ),
+    );
+  }
+
+  pw.Widget headTitleColumn(String text) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+        textAlign: pw.TextAlign.center,
+        maxLines: 2,
+        softWrap: true,
+      ),
+    );
+  }
+
+  pw.Widget contentColumn(String text) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(fontWeight: pw.FontWeight.normal),
+        textAlign: pw.TextAlign.center,
+        maxLines: 2,
+        softWrap: true,
       ),
     );
   }
