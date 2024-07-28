@@ -375,7 +375,7 @@ class _PresenceViewState extends State<PresenceView> {
                                                   false))))
                                       ? "2"
                                       : "1";
-                                  if (val?['status'] == 2) {
+                                  if (val?['status'] == "2") {
                                     val?['terlambat_time'] = DateTime.parse(
                                             rxBody.value?["login_presence"])
                                         .difference(Utils.customDate(
@@ -427,7 +427,7 @@ class _PresenceViewState extends State<PresenceView> {
                                                   false))))
                                       ? "2"
                                       : "1";
-                                  if (val?['status'] == 2) {
+                                  if (val?['status'] == "2") {
                                     val?['terlambat_time'] = DateTime.parse(
                                             rxBody.value?["login_presence"])
                                         .difference(Utils.customDate(
@@ -479,7 +479,7 @@ class _PresenceViewState extends State<PresenceView> {
                                                   false))))
                                       ? "2"
                                       : "1";
-                                  if (val?['status'] == 2) {
+                                  if (val?['status'] == "2") {
                                     val?['terlambat_time'] = DateTime.parse(
                                             rxBody.value?["login_presence"])
                                         .difference(Utils.customDate(
