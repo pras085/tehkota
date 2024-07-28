@@ -42,6 +42,10 @@ class CloudFirestoreService {
     return db.collection('admin').doc('jam').get();
   }
 
+  Future<DocumentSnapshot<Map<String, dynamic>>> getOfficeHoursLembur() {
+    return db.collection('admin').doc('jam-lembur').get();
+  }
+
   Future<void> updateOfficeHours(Map<String, dynamic> newValue) async {
     try {
       // Ambil dokumen spesifik dari koleksi 'users'
@@ -74,6 +78,14 @@ class CloudFirestoreService {
     } catch (e) {
       Utils.showToast(TypeToast.error, '$e');
     }
+  }
+
+  Future<void> updateOfficeHoursLembur(Map<String, dynamic> newValue) async {
+    await FirebaseFirestore.instance.collection('admin').doc("lembur").set(newValue).onError((error, stackTrace) {
+      return Utils.showToast(TypeToast.error, '$error');
+    }).whenComplete(() {
+      return Utils.showToast(TypeToast.success, 'Update selesai.');
+    });
   }
 
   Future<bool> addPresence(String dateTimeNow, Map<String, dynamic>? data, String userID) async {
