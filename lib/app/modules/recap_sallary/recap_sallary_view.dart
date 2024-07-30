@@ -215,6 +215,19 @@ class RekapView extends GetView<RekapController> {
                             ],
                           ),
                         ),
+                        pw.Align(
+                          alignment: pw.Alignment.centerRight,
+                          child: pw.Container(
+                            margin: const pw.EdgeInsets.only(top: 20),
+                            width: Get.width / 3,
+                            child: pw.Column(children: [
+                              contentColumn("Madiun, ${DateFormat.yMd("ID_id").format(DateTime.now())}"),
+                              headTitleColumn("Owner Teh Kota"),
+                              pw.SizedBox(height: 40),
+                              headTitleColumn("Andika Dwi Cahyanto"),
+                            ]),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -424,6 +437,19 @@ class RekapView extends GetView<RekapController> {
                                                                 ],
                                                               ),
                                                             ],
+                                                          ),
+                                                        ),
+                                                        pw.Align(
+                                                          alignment: pw.Alignment.centerRight,
+                                                          child: pw.Container(
+                                                            margin: const pw.EdgeInsets.only(top: 20),
+                                                            width: Get.width / 3,
+                                                            child: pw.Column(children: [
+                                                              contentColumn("Madiun, ${DateFormat.yMd("ID_id").format(DateTime.now())}"),
+                                                              headTitleColumn("Owner Teh Kota"),
+                                                              pw.SizedBox(height: 40),
+                                                              headTitleColumn("Andika Dwi Cahyanto"),
+                                                            ]),
                                                           ),
                                                         ),
                                                       ],

@@ -440,91 +440,101 @@ class SettingsView extends GetView<SettingsController> {
   }
 
   Widget content() {
-    return Container(
-      width: Get.width,
-      height: Get.height,
-      padding: const EdgeInsets.all(16),
-      child: Obx(() {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
-              alignment: Alignment.center,
-              child: const CustomText(
-                "Admin Account",
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Utils.gapVertical(16),
-            CustomTextFormField(
-              title: "Email",
-              controller: controller.emailC,
-              hintText: "Email",
-            ),
-            CustomTextFormField(
-              title: "Password",
-              controller: controller.passC,
-              hintText: "Password",
-              isPassword: true,
-            ),
-            if (!controller.isVerifMode.value) ...[
-              CustomTextFormField(
-                title: "Password Ulang",
-                controller: controller.passConfirmC,
-                hintText: "Password Ulang",
-                isPassword: true,
-              ),
-            ],
-            GestureDetector(
-              onTap: () => controller.tapLoginButton(),
-              child: Container(
-                width: Get.width,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(color: Color(AppColor.colorGreen), borderRadius: BorderRadius.all(Radius.circular(12))),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: CustomText(
-                  controller.isVerifMode.value ? "Verifikasi" : "Ubah",
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(AppColor.colorWhite),
+    return SingleChildScrollView(
+      child: Container(
+        width: Get.width,
+        height: Get.height,
+        padding: const EdgeInsets.all(16),
+        child: Obx(() {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(minWidth: Get.width, minHeight: Get.height / 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(color: const Color(AppColor.colorLightGrey), borderRadius: BorderRadius.circular(6)),
+                      alignment: Alignment.center,
+                      child: const CustomText(
+                        "Admin Account",
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Utils.gapVertical(16),
+                    CustomTextFormField(
+                      title: "Email",
+                      controller: controller.emailC,
+                      hintText: "Email",
+                    ),
+                    CustomTextFormField(
+                      title: "Password",
+                      controller: controller.passC,
+                      hintText: "Password",
+                      isPassword: true,
+                    ),
+                    if (!controller.isVerifMode.value) ...[
+                      CustomTextFormField(
+                        title: "Password Ulang",
+                        controller: controller.passConfirmC,
+                        hintText: "Password Ulang",
+                        isPassword: true,
+                      ),
+                    ],
+                    GestureDetector(
+                      onTap: () => controller.tapLoginButton(),
+                      child: Container(
+                        width: Get.width,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(color: Color(AppColor.colorGreen), borderRadius: BorderRadius.all(Radius.circular(12))),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: CustomText(
+                          controller.isVerifMode.value ? "Verifikasi" : "Ubah",
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(AppColor.colorWhite),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            Utils.gapVertical(24),
-            DefaultTabController(
-              length: 2,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    child: TabBar(
-                      tabs: [
-                        Tab(text: "Jam Kerja"),
-                        Tab(text: "Jam Lembur"),
-                      ],
-                      indicatorColor: Color(AppColor.colorGreen),
-                      labelColor: Color(AppColor.colorGreen),
-                      unselectedLabelColor: Colors.black54,
+              DefaultTabController(
+                length: 2,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: TabBar(
+                        tabs: [
+                          Tab(text: "Jam Kerja"),
+                          Tab(text: "Jam Lembur"),
+                        ],
+                        indicatorColor: Color(AppColor.colorGreen),
+                        labelColor: Color(AppColor.colorGreen),
+                        unselectedLabelColor: Colors.black54,
+                      ),
                     ),
-                  ),
-                  SizedBox(
-                    height: 345,
-                    child: TabBarView(
-                      children: [
-                        tabBarJamKerja(),
-                        tabBarJamLembur(),
-                      ],
-                    ),
-                  )
-                ],
+                    SizedBox(
+                      height: 345,
+                      child: TabBarView(
+                        children: [
+                          tabBarJamKerja(),
+                          tabBarJamLembur(),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
-      }),
+            ],
+          );
+        }),
+      ),
     );
   }
 
